@@ -25,12 +25,12 @@ const iconUrl = css.match(/url\((https:[^)]+)\)/)?.[1];
 if (!iconUrl) throw new Error('fonte de ícones não veio na resposta');
 writeFileSync(join(root, 'material-symbols.woff2'), await get(iconUrl, true));
 
-// Actor (texto): só os subconjuntos latinos, que cobrem o português
-const actor = await get('https://fonts.googleapis.com/css2?family=Actor&display=swap');
-for (const block of actor.split('/* ').slice(1)) {
+// Inter variável (texto): subconjuntos latinos que cobrem o português.
+const inter = await get('https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap');
+for (const block of inter.split('/* ').slice(1)) {
   const name = block.slice(0, block.indexOf(' */'));
   if (name !== 'latin' && name !== 'latin-ext') continue;
-  writeFileSync(join(root, `actor-${name}.woff2`), await get(block.match(/url\((https:[^)]+)\)/)[1], true));
-  console.log(`actor-${name}: ${block.match(/unicode-range: ([^;]+);/)[1]}`);
+  writeFileSync(join(root, `inter-${name}.woff2`), await get(block.match(/url\((https:[^)]+)\)/)[1], true));
+  console.log(`inter-${name}: ${block.match(/unicode-range: ([^;]+);/)[1]}`);
 }
 console.log(`${icons.length} ícones`);

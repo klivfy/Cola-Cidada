@@ -122,11 +122,11 @@ Os testes de navegador bloqueiam as APIs públicas, então rodam offline e não 
   - **Minha Cola Eleitoral (Cédula Cívica de Mandatos):** Assistente dedicado para preenchimento e vinculação rápida de todos os cargos eletivos (Presidente, Governador, Senadores, Deputados Federais, Estaduais e Vereadores), com visualização do status de preenchimento.
   - **Painel de Governança & Score de Vigilância Cívica:** Termômetro no Perfil que calcula o índice de vigilância do cidadão (0 a 100 pontos) com base na cobertura de mandatos vigiados, deliberações oficiais checadas e auditorias realizadas.
   - **Floating Action Button (FAB MD3):** Botão flutuante de ação rápida posicionado na interface para seguir novos representantes ou auditar votações instantaneamente de qualquer tela.
-- **Conformidade 100% Google Material Design 3 (M3) & Tipografia Actor:**
-  - **Tipografia Actor (Thomas Junold):** Adoção completa e irrestrita da fonte **Actor** (`https://fonts.googleapis.com/css2?family=Actor&display=swap`) em toda a hierarquia visual (Display, Headline, Title, Body, Label).
+- **Identidade inspirada no Google Stitch e no Material Design 3:**
+  - **Tipografia Inter:** Fonte variável servida localmente em pesos de 400 a 700, sem pedidos do navegador a terceiros.
   - **Paleta Tonal M3 (`md-sys-color-*`):** Cores tonais dinâmicas adaptativas (Verde Cívico tonal 40/80, Azul Federal tonal 40/80, Ouro República tonal 40/80) com transição fluida entre Tema Claro e Tema Escuro (*Dark Mode*).
   - **Superfícies & Elevações Tonais:** Camadas de superfície escalonadas (`surface-container-lowest` até `highest`) e elevações padronizadas M3 (níveis 0 a 5).
-  - **Formas & Raios M3 (`md-sys-shape-*`):** Cantos de 28px para diálogos e modais, 16px para cards e FAB, 8px para inputs e chips, e 9999px (pílula total) para botões e indicadores ativos.
+  - **Formas & Raios M3 (`md-sys-shape-*`):** Cantos de 12px para cartões, 8px para inputs e chips, e 9999px para botões e indicadores ativos.
   - **Componentes Nativos M3:** Top App Bar (64px), Extended Floating Action Button (FAB), Navigation Rail no desktop, Navigation Bar em pílula no mobile e Switches com trilho e thumb no padrão Material You.
 
 

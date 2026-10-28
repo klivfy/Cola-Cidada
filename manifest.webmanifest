@@ -4,8 +4,8 @@
   "description": "Acompanhe votações, presença e gastos dos representantes que você elegeu.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f8f5",
-  "theme_color": "#176b3a",
+  "background_color": "#f9f9fc",
+  "theme_color": "#006b26",
   "orientation": "portrait-primary",
   "lang": "pt-BR",
   "icons": [

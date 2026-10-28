@@ -1,11 +1,11 @@
-const CACHE_NAME = 'monitor-cidadao-v30';
+const CACHE_NAME = 'cola-cidada-v31';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
   '/icon.svg',
   '/fonts/material-symbols.woff2',
-  '/fonts/actor-latin.woff2',
+  '/fonts/inter-latin.woff2',
   '/src/styles.css',
   '/src/utilities.css',
   '/src/dynamic.js',

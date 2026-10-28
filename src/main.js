@@ -35,9 +35,7 @@ function shell() {
       <header class="top-header" role="banner">
         <div class="header-brand">
           <a href="#/inicio" class="u-d-flex u-ai-center u-gap-10 u-c-inherit">
-            <div class="u-width-36 u-height-36 u-br-10 u-bg-f4e9bb u-d-grid u-place-items-center u-c-fff">
-              <span class="mi fill u-fs-22" aria-hidden="true">balance</span>
-            </div>
+            <img class="header-mark" src="/icon.svg" alt="" width="36" height="36">
             <div class="brand-badge">
               <span class="brand-title">Cola Cidadã</span>
               <span class="brand-subtitle">Acompanhe seu mandato</span>
@@ -46,6 +44,7 @@ function shell() {
         </div>
 
         <div class="header-actions">
+          <span class="header-source-status"><span class="status-dot" aria-hidden="true"></span>Dados públicos oficiais</span>
           <button class="btn icon ghost header-icon-btn" id="header-theme-btn" aria-label="Alternar tema claro/escuro">
             <span class="mi" aria-hidden="true" id="header-theme-icon">dark_mode</span>
           </button>
@@ -74,6 +73,11 @@ function shell() {
       <!-- 3. Shell Principal (Sidebar + Content) -->
       <div class="shell">
         <aside class="side" aria-label="Menu lateral">
+          <div class="side-main">
+            <a class="side-brand" href="#/inicio" aria-label="Cola Cidadã, início">
+              <img src="/icon.svg" alt="" width="40" height="40">
+              <span><b>Cola Cidadã</b><small>Transparência pública</small></span>
+            </a>
           <nav class="nav" aria-label="Navegação principal">
             ${Object.entries(routes)
               .filter(([, r]) => r.nav !== false)
@@ -86,6 +90,7 @@ function shell() {
               )
               .join('')}
           </nav>
+          </div>
 
           <div class="side-foot">
             <button class="btn outlined sm u-width-100pct u-jc-flex-start" id="pwa-install" hidden>
@@ -123,15 +128,15 @@ function shell() {
         <div class="main-col">
           <!-- 2. Sub-Banner Cívico Institucional -->
           <aside class="sub-civic-bar no-print" aria-label="Fontes oficiais e atalhos">
-            <span class="civic-sources">
-              <span class="mi u-fs-15 u-c-primary" aria-hidden="true">verified</span>
-              Fontes oficiais: TSE • Câmara • Senado • Tesouro Nacional
-            </span>
+            <div class="civic-status">
+              <b><span class="status-dot" aria-hidden="true"></span>TRANSPARÊNCIA CÍVICA</b>
+              <span class="civic-sources"><span class="mi u-fs-15 u-c-primary" aria-hidden="true">verified</span>Fontes oficiais: TSE • Câmara • Senado • Tesouro</span>
+            </div>
 
             <div class="row civic-chips u-gap-8">
-              <a href="#/painel" class="chip u-cursor-pointer u-text-decoration-none"><span class="mi u-fs-14" aria-hidden="true">dashboard</span>Painel Público</a>
+              <a href="#/painel" class="chip u-cursor-pointer u-text-decoration-none" aria-label="Painel Público"><span class="mi u-fs-14" aria-hidden="true">dashboard</span>Painel</a>
               <a href="#/comparador" class="chip u-cursor-pointer u-text-decoration-none"><span class="mi u-fs-14" aria-hidden="true">gavel</span>Votações</a>
-              <a href="#/meus-politicos" class="chip u-cursor-pointer u-text-decoration-none"><span class="mi u-fs-14" aria-hidden="true">bookmark_added</span>Quem Acompanho</a>
+              <a href="#/meus-politicos" class="chip u-cursor-pointer u-text-decoration-none" aria-label="Quem Acompanho"><span class="mi u-fs-14" aria-hidden="true">bookmark_added</span>Acompanho</a>
             </div>
           </aside>
 

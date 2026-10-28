@@ -862,7 +862,7 @@ test.describe('fluxos', () => {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       expect(overflow, `${r}: barra de rolagem horizontal`).toBeLessThanOrEqual(0);
     }
-    expect(await page.evaluate(() => document.fonts.check('16px Actor'))).toBe(true);
+    expect(await page.evaluate(() => document.fonts.check('16px Inter'))).toBe(true);
     // só as APIs públicas de dados abertos; nenhuma fonte, folha de estilo ou script de terceiros
     const APIS = /^https:\/\/(dadosabertos\.camara\.leg\.br|legis\.senado\.leg\.br|apidatalake\.tesouro\.gov\.br)\//;
     expect(outside.filter((u) => !APIS.test(u))).toEqual([]);

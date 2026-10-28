@@ -41,8 +41,9 @@ export async function render(root) {
   // Layout Completo Desktop / Tablet com 3 Colunas (Conforme Stitch)
   root.innerHTML = `
     <!-- Topo da Visão Geral -->
-    <div class="top">
+    <div class="top civic-dashboard-header">
       <div>
+        <span class="directory-eyebrow"><span class="mi" aria-hidden="true">verified</span>Seu resumo cívico</span>
         <h1>Acompanhamento</h1>
         <p>Votações e gastos das <b>${politicians.length} pessoas que você acompanha</b>.</p>
       </div>
@@ -51,6 +52,12 @@ export async function render(root) {
         <a class="btn primary" href="#/painel"><span class="mi" aria-hidden="true">account_balance</span>Painel Público</a>
       </div>
     </div>
+
+    <nav class="dashboard-segments" aria-label="Seções do acompanhamento">
+      <button type="button" data-scroll="pol-list-title" class="active" aria-pressed="true"><span class="mi" aria-hidden="true">dashboard</span>Resumo</button>
+      <button type="button" data-scroll="feed-title" aria-pressed="false"><span class="mi" aria-hidden="true">timeline</span>Últimas atividades</button>
+    </nav>
+    <div class="alert-card-hero mobile-agenda" id="agenda-hero-mobile" hidden></div>
 
     <!-- Grid de 3 Colunas (Stitch Desktop Dashboard) -->
     <div class="grid g3-desktop u-ai-start">
@@ -142,6 +149,16 @@ export async function render(root) {
   `;
 
   $('#btn-refresh', root).onclick = () => render(root);
+
+  root.querySelectorAll('.dashboard-segments button').forEach((button) => {
+    button.onclick = () => {
+      root.querySelectorAll('.dashboard-segments button').forEach((other) => {
+        other.classList.toggle('active', other === button);
+        other.setAttribute('aria-pressed', String(other === button));
+      });
+      root.querySelector(`#${button.dataset.scroll}`)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    };
+  });
 
   loadAgenda(root);
 
@@ -343,6 +360,7 @@ export async function render(root) {
 async function loadAgenda(root) {
   const list = $('#agenda-list', root);
   const hero = $('#agenda-hero', root);
+  const mobileHero = $('#agenda-hero-mobile', root);
   if (!list) return;
   const when = (iso) => {
     const d = new Date(iso);
@@ -368,9 +386,8 @@ async function loadAgenda(root) {
       )
       .join('');
     const next = events.find((e) => /Deliberativa/.test(e.type || '') && !/N[ãa]o/.test(e.type || '')) || events[0];
-    if (hero && next) {
-      hero.hidden = false;
-      hero.innerHTML = `
+    if (next) {
+      const heroHtml = `
         <h3><span class="mi u-fs-18" aria-hidden="true">event</span>PRÓXIMO EVENTO NA CÂMARA</h3>
         <div class="alert-title">${esc(next.organName || next.organ || 'Câmara dos Deputados')}</div>
         <p>${esc(next.description || next.type)}</p>
@@ -378,6 +395,11 @@ async function loadAgenda(root) {
           <b>${esc(when(next.start))}</b>
           <a class="btn sm u-bg-4e3900 u-c-fff" href="${esc(next.url)}" target="_blank" rel="noopener noreferrer">Ver evento</a>
         </div>`;
+      for (const target of [hero, mobileHero]) {
+        if (!target) continue;
+        target.hidden = false;
+        target.innerHTML = heroHtml;
+      }
     }
   } catch {
     list.innerHTML = '<p class="muted sm">Não foi possível carregar a agenda oficial agora.</p>';
