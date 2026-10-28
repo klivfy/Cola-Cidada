@@ -147,11 +147,12 @@ function accountsHtml(b, data) {
 
 export async function render(root) {
   root.innerHTML = `
-    <div class="top">
+    <div class="top directory-intro">
       <div>
+        <span class="directory-eyebrow"><span class="mi" aria-hidden="true">verified</span>Dados públicos oficiais</span>
         <h1>Painel público</h1>
-        <p>Quem ocupa cada cargo, do Presidente aos vereadores das capitais e das maiores cidades de cada estado, e as contas de cada órgão. Tudo aberto, sem cadastro.
-        Abra um perfil e, se quiser, acompanhe essa pessoa: a escolha fica só neste aparelho.</p>
+        <p>Explore cargos e contas públicas, do Presidente aos vereadores das capitais e das maiores cidades de cada estado.</p>
+        <p>Abra um perfil e escolha quem acompanhar. Sua lista fica só neste aparelho.</p>
       </div>
     </div>
 
@@ -256,7 +257,7 @@ async function renderPanel(panel) {
       ? `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}${filtered.length > visible.length ? `, mostrando ${visible.length}` : ''}`
       : 'Nenhum resultado para esse filtro.';
     results.innerHTML = `
-      <ul class="painel-grid" aria-label="${esc(section.label)}">${visible.map(card).join('')}</ul>
+      ${visible.length ? `<ul class="painel-grid" aria-label="${esc(section.label)}">${visible.map(card).join('')}</ul>` : '<div class="card empty directory-empty"><span class="mi" aria-hidden="true">info</span><p>Nenhuma pessoa encontrada. Tente outro nome, partido ou local.</p></div>'}
       ${filtered.length > visible.length ? `<button class="btn outlined painel-more" id="painel-more">Mostrar mais ${Math.min(PAGE, filtered.length - visible.length)}</button>` : ''}
       ${section.key === 'stf' ? `<p class="sm muted">${esc(stfNote)}</p>` : ''}
       ${['governadores', 'prefeitos'].includes(section.key) ? `<p class="xs muted">Ocupantes atuais conferidos em ${esc(checkedAt)}. Renúncias e afastamentos mudam esses cargos: confira também o site oficial.${section.key === 'prefeitos' ? ` Nas cidades que não são capitais, os ocupantes foram conferidos em notícias de ${esc(polosCheckedAt)} (veja a nota de cada perfil) e podem ter mudado depois.` : ''}</p>` : ''}`;

@@ -32,6 +32,11 @@ export default function PoliticosScreen() {
                 subtitle="Atalhos para quem você escolheu acompanhar depois de ver o perfil. A lista fica só neste aparelho e não diz em quem você votou."
               />
               <Button label="Abrir o Painel público" variant="secondary" onPress={() => router.navigate('/')} />
+              {ready && state.politicians.length > 0 ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {state.politicians.length} {state.politicians.length === 1 ? 'pessoa acompanhada' : 'pessoas acompanhadas'}
+                </ThemedText>
+              ) : null}
             </View>
           }
           ListEmptyComponent={
@@ -65,5 +70,5 @@ export default function PoliticosScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   header: { gap: Spacing.three, marginBottom: Spacing.one },
-  empty: { borderRadius: 16, borderWidth: 1, padding: Spacing.four, gap: Spacing.two },
+  empty: { borderRadius: 12, borderWidth: 1, padding: Spacing.four, gap: Spacing.two },
 });

@@ -21,7 +21,8 @@ export async function render(root) {
             <p>Aqui aparecem as votações e os gastos de quem você escolher acompanhar. Por enquanto, ninguém.</p>
           </div>
         </div>
-        <div class="card stack u-gap-12 u-p-24">
+        <div class="card stack u-gap-12 u-p-24 welcome-card">
+          <span class="mi welcome-icon" aria-hidden="true">account_balance</span>
           <h2 class="h2">Comece pelo Painel Público</h2>
           <p class="sm u-lh-1_5">
             Presidente, ministros do STF, senadores, deputados, governadores, prefeitos e vereadores das capitais estão todos abertos para consulta,
@@ -86,11 +87,11 @@ export async function render(root) {
         </div>
 
         <!-- Filtros Rápidos do Feed (Stitch) -->
-        <div class="row u-gap-6" id="feed-filters">
-          <button class="chip green u-cursor-pointer" data-filter="all">Tudo</button>
-          <button class="chip u-cursor-pointer" data-filter="votacao">Votações Nominais</button>
-          <button class="chip u-cursor-pointer" data-filter="ceap">Auditorias CEAP</button>
-          <button class="chip u-cursor-pointer" data-filter="comissao">Comissões</button>
+        <div class="row u-gap-6" id="feed-filters" aria-label="Filtrar linha do tempo">
+          <button class="chip green u-cursor-pointer" data-filter="all" aria-pressed="true">Tudo</button>
+          <button class="chip u-cursor-pointer" data-filter="votacao" aria-pressed="false">Votações Nominais</button>
+          <button class="chip u-cursor-pointer" data-filter="ceap" aria-pressed="false">Auditorias CEAP</button>
+          <button class="chip u-cursor-pointer" data-filter="comissao" aria-pressed="false">Comissões</button>
         </div>
 
         <div id="feed" class="stack">
@@ -325,8 +326,12 @@ export async function render(root) {
     // Filtros de chips do feed
     root.querySelectorAll('#feed-filters button').forEach((btn) => {
       btn.onclick = () => {
-        root.querySelectorAll('#feed-filters button').forEach((b) => b.classList.remove('green'));
+        root.querySelectorAll('#feed-filters button').forEach((b) => {
+          b.classList.remove('green');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('green');
+        btn.setAttribute('aria-pressed', 'true');
         renderFeedCards(btn.dataset.filter);
       };
     });

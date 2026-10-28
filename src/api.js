@@ -1,5 +1,6 @@
 // Cliente de APIs Oficiais de Dados Abertos (Câmara dos Deputados e Senado Federal)
 import { FEDERATION_UNITS } from './data/federation.js';
+import { currentLegislature } from './legislature.js';
 export { FEDERATION_UNITS };
 
 const CAMARA_BASE = 'https://dadosabertos.camara.leg.br/api/v2';
@@ -97,7 +98,7 @@ export async function deputyPropositions(camaraId, limit = 8) {
 
 export async function deputyExpenses(camaraId, limit = 100) {
   const { dados } = await getJson(
-    `${CAMARA_BASE}/deputados/${camaraId}/despesas?idLegislatura=57&itens=${limit}&ordem=DESC&ordenarPor=dataDocumento`
+    `${CAMARA_BASE}/deputados/${camaraId}/despesas?idLegislatura=${currentLegislature()}&itens=${limit}&ordem=DESC&ordenarPor=dataDocumento`
   );
   return (dados || []).map((d) => ({
     year: d.ano,
@@ -158,7 +159,7 @@ export async function recentPlenarySessions(limit = 15) {
 
 // Blocos e federações partidárias da legislatura atual (nome lista os partidos membros).
 export async function legislatureBlocs() {
-  const { dados } = await getJson(`${CAMARA_BASE}/blocos?idLegislatura=57&itens=50`);
+  const { dados } = await getJson(`${CAMARA_BASE}/blocos?idLegislatura=${currentLegislature()}&itens=50`);
   return (dados || []).map((b) => ({ id: b.id, name: b.nome, federation: !!b.federacao }));
 }
 

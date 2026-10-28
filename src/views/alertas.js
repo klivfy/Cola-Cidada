@@ -51,7 +51,7 @@ export function render(root) {
     </div>
 
     <!-- Filtros de Alerta (Conforme Stitch) -->
-    <div class="row u-gap-8 u-mb-20" id="alert-filters">
+    <div class="row u-gap-8 u-mb-20" id="alert-filters" aria-label="Filtrar alertas">
       <button class="chip ${activeFilter === 'all' ? 'green' : ''} u-cursor-pointer u-p-6-14 u-fs-12" data-filter="all" aria-pressed="${activeFilter === 'all'}">
         Todos (${alerts.length})
       </button>
@@ -146,7 +146,6 @@ export function render(root) {
             <span class="mi u-c-primary u-fs-20" aria-hidden="true">tune</span>
             <h2 class="h2">Gatilhos de Notificação</h2>
           </div>
-          <span class="chip green xs">Ativo</span>
         </div>
 
         <p class="xs muted u-lh-1_5">
@@ -238,7 +237,7 @@ export function render(root) {
       else toast(found, count > 0 ? 'check_circle' : 'info');
       if (count > 0 && 'Notification' in window && Notification.permission === 'granted') {
         const first = fresh.find((a) => !alerts.some((old) => old.id === a.id));
-        if (first) new Notification('Monitor Cidadão', { body: first.text, icon: '/icon.svg' });
+        if (first) new Notification('Cola Cidadã', { body: first.text, icon: '/icon.svg' });
       }
     } catch {
       toast('Erro temporário ao consultar as bases de dados abertas.', 'error');

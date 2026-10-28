@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Monitor Cidadão - fiscalize o mandato de quem você elegeu.",
+  "description": "Cola Cidadã - acompanhe votações, presença e gastos dos representantes que você elegeu.",
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",

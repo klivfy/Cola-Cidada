@@ -67,6 +67,16 @@ local: até 3 avisos, ou um resumo se forem mais. Nada vai a servidor. A decisã
 
 Verificado só no build web e em Node: a tarefa em segundo plano precisa de um aparelho (ou de um build de desenvolvimento) para ser testada.
 
+### Builds nativos
+
+Os perfis EAS ficam em `eas.json`. Use o perfil `development` para testar notificações e tarefas em segundo plano em um aparelho:
+
+```bash
+npx eas-cli@latest build --profile development
+```
+
+Antes de criar um build distribuível, configure no `app.json` os identificadores oficiais de Android e iOS (`android.package` e `ios.bundleIdentifier`). Eles dependem do cadastro da aplicação nas lojas e não são inferidos pelo projeto.
+
 ## Scripts
 
 ```bash

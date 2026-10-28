@@ -1,5 +1,6 @@
 // Cliente das APIs de Dados Abertos da Câmara dos Deputados e do Senado Federal (as mesmas do PWA).
 import type { DeputyProfile, DeputyResult, Proposition, SenatorResult } from './types';
+import { currentLegislature } from './legislature';
 
 export const CAMARA_BASE = 'https://dadosabertos.camara.leg.br/api/v2';
 export const SENADO_BASE = 'https://legis.senado.leg.br/dadosabertos';
@@ -167,7 +168,7 @@ export interface Expense {
 /** Notas da cota parlamentar (CEAP) mais recentes de um deputado. */
 export async function deputyExpenses(camaraId: number, limit = 30): Promise<Expense[]> {
   const { dados } = await getJson(
-    `${CAMARA_BASE}/deputados/${camaraId}/despesas?idLegislatura=57&itens=${limit}&ordem=DESC&ordenarPor=dataDocumento`
+    `${CAMARA_BASE}/deputados/${camaraId}/despesas?idLegislatura=${currentLegislature()}&itens=${limit}&ordem=DESC&ordenarPor=dataDocumento`
   );
   return (dados || []).map((d: any) => ({
     type: d.tipoDespesa,

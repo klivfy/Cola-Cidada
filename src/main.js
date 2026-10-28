@@ -39,8 +39,8 @@ function shell() {
               <span class="mi fill u-fs-22" aria-hidden="true">balance</span>
             </div>
             <div class="brand-badge">
-              <span class="brand-title">Monitor Cidadão</span>
-              <span class="brand-subtitle">Transparência Pública</span>
+              <span class="brand-title">Cola Cidadã</span>
+              <span class="brand-subtitle">Acompanhe seu mandato</span>
             </div>
           </a>
         </div>
@@ -182,7 +182,7 @@ function shell() {
 
           <div class="footer-bottom">
             <div>
-              © ${new Date().getFullYear()} Monitor Cidadão • Todos os direitos reservados.
+              © ${new Date().getFullYear()} Cola Cidadã • Todos os direitos reservados.
             </div>
 
             <div class="footer-badges">
@@ -268,8 +268,15 @@ function paintTheme() {
 // Troca de tema com crossfade suave (evita o salto brusco de brilho); instantânea com movimento reduzido.
 function applyTheme({ animate = false } = {}) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (animate && !reduce && document.startViewTransition) document.startViewTransition(paintTheme);
-  else paintTheme();
+  if (animate && !reduce && document.startViewTransition) {
+    // A second theme change or a resize can interrupt the transition. The
+    // browser reports that interruption through a rejected `finished` promise;
+    // it is expected and must not become an uncaught page error.
+    const transition = document.startViewTransition(paintTheme);
+    transition.ready.catch(() => {});
+    transition.updateCallbackDone.catch(() => {});
+    transition.finished.catch(() => {});
+  } else paintTheme();
 }
 
 darkQuery.addEventListener('change', () => {
@@ -307,13 +314,16 @@ async function render({ moveFocus = false } = {}) {
   const route = routes[key] || routes.painel;
 
   // Atualiza active na sidebar e no mobile nav
-  $$('.nav a, .mobile-nav a').forEach((a) =>
-    a.classList.toggle('active', a.dataset.route === (routes[key] ? key : 'painel'))
-  );
+  $$('.nav a, .mobile-nav a').forEach((a) => {
+    const active = a.dataset.route === (routes[key] ? key : 'painel');
+    a.classList.toggle('active', active);
+    if (active) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  });
 
   const root = $('#view');
   if (typeof cleanup === 'function') cleanup();
-  document.title = `${route.label} · Monitor Cidadão`;
+  document.title = `${route.label} · Cola Cidadã`;
   const next = await route.view.render(root);
   // uma renderização mais nova começou enquanto esta esperava: o que ela montou é que vale
   if (myRender !== renderId) return typeof next === 'function' && next();
@@ -412,7 +422,15 @@ window.addEventListener('hashchange', () => {
   if (dir && document.startViewTransition && !prefersReducedMotion()) {
     const root = document.documentElement;
     root.dataset.navDir = dir > 0 ? 'fwd' : 'back';
-    document.startViewTransition(update).finished.finally(() => delete root.dataset.navDir);
+    // Navigation can be superseded by another click or a viewport resize.
+    // Treat that interruption as a normal cancellation, while always clearing
+    // the direction marker used by the transition CSS.
+    const transition = document.startViewTransition(update);
+    transition.ready.catch(() => {});
+    transition.updateCallbackDone.catch(() => {});
+    transition.finished
+      .catch(() => {})
+      .finally(() => delete root.dataset.navDir);
   } else {
     update();
   }

@@ -9,6 +9,7 @@ import {
 import { deputyPlenaryStats, senatorPlenaryStats } from './plenary.js';
 import { birthplace, isMagistrate, partyName } from './simbolos.js';
 import { plenaryPanelHtml } from './views/plenaryPanel.js';
+import { currentLegislatureLabel } from './legislature.js';
 
 export async function openDossierModal(p) {
   const m = mandateProgress(p);
@@ -80,12 +81,12 @@ export async function openDossierModal(p) {
         <!-- Cabeçalho Institucional -->
         <div class="row between u-bb-2-solid-primary u-pb-12">
           <div>
-            <span class="sm u-ls-1 u-tt-uppercase u-fw-700 u-c-primary">COLA-CIDADÃO · AUDITORIA CÍVICA</span>
+            <span class="sm u-ls-1 u-tt-uppercase u-fw-700 u-c-primary">COLA CIDADÃ · AUDITORIA CÍVICA</span>
             <h2 class="u-fs-20 u-fw-800 u-mt-2">Relatório de Desempenho & Fiscalização de Mandato</h2>
             <span class="sm muted">Documento emitido diretamente pelo cidadão via Dados Abertos Oficiais</span>
           </div>
           <div class="u-ta-right">
-            <span class="chip green">57ª Legislatura</span><br>
+            <span class="chip green">${currentLegislatureLabel()}</span><br>
             <span class="sm muted u-d-inline-block u-mt-4">Emissão: ${new Date().toLocaleDateString('pt-BR')}</span>
           </div>
         </div>

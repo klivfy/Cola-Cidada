@@ -2,42 +2,31 @@
 import { modal, esc, toast, brl, fmtDate, photoUrl } from './ui.js';
 import { partyOrBirth } from './simbolos.js';
 
-export async function createCardImage({ politician, title, highlight, badge, badgeColor = '#006c27', detailText }) {
+export async function createCardImage({ politician, title, highlight, badge, badgeColor = '#176b3a', detailText }) {
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
   canvas.height = 1080;
   const ctx = canvas.getContext('2d');
 
-  // 1. Fundo Gradiente Escuro Moderno
-  const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1080);
-  bgGrad.addColorStop(0, '#0a1017');
-  bgGrad.addColorStop(0.5, '#131e2b');
-  bgGrad.addColorStop(1, '#0c1914');
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, 1080, 1080);
-
-  // Efeito sutil de brilho circular
-  const radial = ctx.createRadialGradient(200, 200, 10, 200, 200, 450);
-  radial.addColorStop(0, 'rgba(0, 108, 39, 0.22)');
-  radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = radial;
+  // Fundo neutro, com os tons da marca aplicados apenas em elementos de destaque.
+  ctx.fillStyle = '#f7f8f5';
   ctx.fillRect(0, 0, 1080, 1080);
 
   // 2. Moldura e Cartão Interno
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.strokeStyle = '#c5cec6';
   ctx.lineWidth = 4;
   ctx.strokeRoundRect(50, 50, 980, 980, 36);
 
   // 3. Cabeçalho Marca Cívica
-  ctx.fillStyle = '#00c354';
+  ctx.fillStyle = '#176b3a';
   ctx.font = 'bold 30px "Actor", system-ui, sans-serif';
-  ctx.fillText('COLA-CIDADÃO', 90, 130);
+  ctx.fillText('COLA CIDADÃ', 90, 130);
 
-  ctx.fillStyle = '#8e9aa8';
+  ctx.fillStyle = '#465149';
   ctx.font = '600 24px "Actor", system-ui, sans-serif';
   ctx.fillText('CONTROLE SOCIAL E FISCALIZAÇÃO DO MANDATO', 90, 170);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.fillStyle = '#c5cec6';
   ctx.fillRect(90, 200, 900, 2);
 
   // 4. Foto e Dados do Parlamentar
@@ -63,7 +52,7 @@ export async function createCardImage({ politician, title, highlight, badge, bad
         ctx.drawImage(img, 95, 235, 150, 150);
         ctx.restore();
 
-        ctx.strokeStyle = '#00c354';
+        ctx.strokeStyle = '#2b8050';
         ctx.lineWidth = 6;
         ctx.beginPath();
         ctx.arc(170, 310, 77, 0, Math.PI * 2);
@@ -76,11 +65,11 @@ export async function createCardImage({ politician, title, highlight, badge, bad
 
   const textStartX = imgLoaded ? 280 : 90;
 
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = '#1b211d';
   ctx.font = 'bold 44px "Actor", system-ui, sans-serif';
   ctx.fillText(politician.name.slice(0, 32), textStartX, 290);
 
-  ctx.fillStyle = '#a2b4c7';
+  ctx.fillStyle = '#465149';
   ctx.font = '600 30px "Actor", system-ui, sans-serif';
   const roleLabel =
     politician.roleKey === 'dep-federal'
@@ -95,15 +84,15 @@ export async function createCardImage({ politician, title, highlight, badge, bad
   ctx.fillText([roleLabel, partyOrBirth(politician)].filter(Boolean).join(' · '), textStartX, 340);
 
   // 5. Bloco de Conteúdo / Matéria Fiscalizada
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+  ctx.fillStyle = '#ecefeb';
   ctx.fillRoundRect(90, 420, 900, 420, 28);
 
-  ctx.fillStyle = '#78899b';
+  ctx.fillStyle = '#465149';
   ctx.font = 'bold 24px "Actor", system-ui, sans-serif';
   ctx.fillText(title.toUpperCase(), 130, 470);
 
   // Quebra de texto do texto principal
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = '#1b211d';
   ctx.font = '600 36px "Actor", system-ui, sans-serif';
   const words = highlight.split(' ');
   let line = '';
@@ -138,13 +127,13 @@ export async function createCardImage({ politician, title, highlight, badge, bad
   }
 
   if (detailText) {
-    ctx.fillStyle = '#9cb0c6';
+    ctx.fillStyle = '#465149';
     ctx.font = '500 24px "Actor", system-ui, sans-serif';
     ctx.fillText(detailText, badge ? 500 : 130, 775);
   }
 
   // 6. Rodapé Oficial
-  ctx.fillStyle = '#718294';
+  ctx.fillStyle = '#68736b';
   ctx.font = '500 22px "Actor", system-ui, sans-serif';
   ctx.fillText('FONTE: DADOS ABERTOS OFICIAIS (CÂMARA / SENADO / TSE)', 90, 900);
   ctx.fillText(`GERADO EM ${new Date().toLocaleDateString('pt-BR')} · PRIVACIDADE TOTAL (LGPD)`, 90, 935);

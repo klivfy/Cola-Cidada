@@ -16,6 +16,7 @@ const APP_SHELL = [
   '/src/plenary.js',
   '/src/views/plenaryPanel.js',
   '/src/api.js',
+  '/src/legislature.js',
   '/src/votes.js',
   '/src/share.js',
   '/src/dossier.js',

@@ -277,8 +277,8 @@ export async function render(root) {
       </div>
 
       <!-- Chips Temáticos -->
-      <div class="row u-gap-6" id="theme-chips">
-        <button class="chip green u-cursor-pointer" data-filter="all">Todas as Matérias</button>
+      <div class="row u-gap-6" id="theme-chips" aria-label="Filtrar por tema">
+        <button class="chip green u-cursor-pointer" data-filter="all" aria-pressed="true">Todas as Matérias</button>
         <button class="chip u-cursor-pointer" data-filter="economia">Economia & Tributos</button>
         <button class="chip u-cursor-pointer" data-filter="tecnologia">Tecnologia & Dados</button>
         <button class="chip u-cursor-pointer" data-filter="social-saude">Social & Saúde</button>
@@ -494,7 +494,7 @@ export async function render(root) {
             title: 'Confronto Cívico 1 vs 1',
             highlight: `${polA.name} vs ${polB.name}: ${pct}% de alinhamento em votações`,
             badge: `${pct}% CONVERGÊNCIA`,
-            badgeColor: pct >= 50 ? '#008732' : '#ba1a1a',
+            badgeColor: pct >= 50 ? '#176b3a' : '#ba1a1a',
             detailText: `${matches} votos coincidentes • ${diffs} divergentes`,
           });
         };
@@ -538,9 +538,14 @@ export async function render(root) {
   filterInput.oninput = applyFilters;
 
   root.querySelectorAll('#theme-chips button').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(btn.classList.contains('green')));
     btn.onclick = () => {
-      root.querySelectorAll('#theme-chips button').forEach((b) => b.classList.remove('green'));
+      root.querySelectorAll('#theme-chips button').forEach((b) => {
+        b.classList.remove('green');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('green');
+      btn.setAttribute('aria-pressed', 'true');
       activeTheme = btn.dataset.filter;
       applyFilters();
     };

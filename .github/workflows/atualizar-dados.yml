@@ -21,11 +21,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            expo-app/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix expo-app
       - run: node scripts/build-ceaps.mjs
       - run: node scripts/build-poderes.mjs
       - run: node scripts/build-emendas.mjs
       - run: node expo-app/scripts/sync-data.mjs
       - run: npm run test:unit
+      - run: npx tsc --noEmit
+        working-directory: expo-app
+      - run: npm test -- --runInBand
+        working-directory: expo-app
       - name: Abrir PR se algo mudou
         env:
           GH_TOKEN: ${{ github.token }}

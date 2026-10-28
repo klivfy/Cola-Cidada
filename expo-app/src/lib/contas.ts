@@ -172,6 +172,7 @@ export function stateBodies(uf: string): Body[] {
 // A API só filtra contratos pelo CNPJ do órgão, aceita no máximo 365 dias e devolve do mais antigo para o mais novo:
 // por isso lê a primeira página (para saber quantas há) e depois da última para trás. Lógica do PWA.
 const PNCP = 'https://pncp.gov.br/api/consulta/v1';
+const PNCP_TIMEOUT_MS = 20_000;
 const MAX_PAGES = 10;
 const contractCache = new Map<string, Contracts>();
 const ymd = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
@@ -200,13 +201,17 @@ async function pncpPage(cnpj: string, from: string, to: string, page: number, si
   let last: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
     if (attempt) await new Promise((r) => setTimeout(r, 800));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PNCP_TIMEOUT_MS);
     try {
-      const res = await fetch(url, { headers: { Accept: 'application/json' } });
+      const res = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
       if (res.status === 204) return { data: [], totalRegistros: 0, totalPaginas: 0 };
       if (!res.ok) throw new Error(`PNCP respondeu ${res.status}`);
       return await res.json();
     } catch (err) {
-      last = err;
+      last = (err as { name?: string }).name === 'AbortError' ? new Error(`PNCP excedeu o tempo limite de ${PNCP_TIMEOUT_MS / 1000}s`) : err;
+    } finally {
+      clearTimeout(timer);
     }
   }
   throw last;
@@ -231,9 +236,10 @@ export async function recentContracts(cnpj: string, opts: { days?: number; keep?
   const key = `${cnpj}:${days}`;
   const hit = contractCache.get(key);
   if (hit) return hit;
+  const pageSize = Math.min(50, Math.max(10, Math.trunc(size) || 50));
   const from = ymd(new Date(now.getTime() - days * 864e5));
   const to = ymd(now);
-  const first = await pncpPage(cnpj, from, to, 1, size);
+  const first = await pncpPage(cnpj, from, to, 1, pageSize);
   const total: number = first.totalRegistros || 0;
   const pages: number = first.totalPaginas || 1;
   const rows: any[] = pages === 1 ? [...(first.data || [])] : [];
@@ -241,7 +247,7 @@ export async function recentContracts(cnpj: string, opts: { days?: number; keep?
     const wanted: number[] = [];
     for (let p = pages; p >= Math.max(1, pages - MAX_PAGES + 1); p--) wanted.push(p);
     for (let i = 0; i < wanted.length; i += 3) {
-      const got = await Promise.all(wanted.slice(i, i + 3).map((p) => (p === 1 ? first : pncpPage(cnpj, from, to, p, size))));
+      const got = await Promise.all(wanted.slice(i, i + 3).map((p) => (p === 1 ? first : pncpPage(cnpj, from, to, p, pageSize))));
       for (const g of got) rows.push(...(g.data || []));
     }
   }

@@ -66,7 +66,7 @@ export function PoliticianCard({ politician: p, onPress, onRemove }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 16, borderWidth: 1, padding: Spacing.three, gap: Spacing.three },
+  card: { borderRadius: 12, borderWidth: 1, padding: Spacing.three, gap: Spacing.three },
   main: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
   pressed: { opacity: 0.7 },
   info: { flex: 1, gap: Spacing.half },

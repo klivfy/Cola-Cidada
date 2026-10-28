@@ -155,7 +155,7 @@ export function render(root) {
           </div>
 
           <p class="sm muted u-lh-1_5">
-            O Monitor Cidadão opera sob o princípio da <b>minimização absoluta de dados</b> (Art. 6º, III da Lei 13.709/18). Suas escolhas eleitorais e histórico de auditoria são dados pessoais sensíveis e <b>nunca são transmitidos para servidores remotos</b>.
+            O Cola Cidadã opera sob o princípio da <b>minimização absoluta de dados</b> (Art. 6º, III da Lei 13.709/18). Suas escolhas eleitorais e histórico de auditoria são dados pessoais sensíveis e <b>nunca são transmitidos para servidores remotos</b>.
           </p>
 
           <div class="stack u-gap-8 u-mt-4">

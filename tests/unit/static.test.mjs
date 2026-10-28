@@ -76,3 +76,11 @@ test('fontes são servidas do próprio app: nenhum pedido ao Google (LGPD) e nen
     assert.ok(sw.includes(`'/${f}'`), `${f} fora do APP_SHELL`);
   }
 });
+
+test('deploy Cloudflare não publica dependências nem código de desenvolvimento', () => {
+  const ignore = read('.assetsignore');
+  for (const entry of ['node_modules/', 'expo-app/', 'tests/', 'scripts/']) assert.match(ignore, new RegExp(`^${entry.replace('/', '\/')}$`, 'm'));
+  for (const entry of ['src/', 'fonts/', 'fotos/', 'partidos/', 'bandeiras/']) assert.doesNotMatch(ignore, new RegExp(`^${entry.replace('/', '\/')}$`, 'm'));
+  const config = JSON.parse(read('wrangler.jsonc'));
+  assert.equal(config.assets.directory, '.');
+});

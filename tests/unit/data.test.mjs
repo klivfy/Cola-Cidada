@@ -83,3 +83,13 @@ test('entes do Siconfi: um código para cada estado e para cada capital', () => 
     if (u.hasCouncil) assert.equal(String(ufs[u.uf].capital).slice(0, 2), String(ufs[u.uf].estado), `${u.uf}: capital de outro estado`);
   }
 });
+
+test('resumos financeiros carregam fonte e data de geração', () => {
+  for (const file of ['ceaps.json', 'poderes.json', 'emendas.json']) {
+    const data = load(file);
+    assert.match(data.geradoEm, /^\d{4}-\d{2}-\d{2}$/i, `${file}: data inválida`);
+    assert.ok(data.fonte, `${file}: fonte ausente`);
+  }
+  const emendas = load('emendas.json');
+  assert.match(String(emendas.desde), /^20\d{2}$/);
+});

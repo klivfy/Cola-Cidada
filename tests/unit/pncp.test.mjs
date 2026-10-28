@@ -39,6 +39,12 @@ test('contrato do PNCP vira o resumo da tela, com link e marca de emenda', () =>
   assert.equal(toContract(raw(1, '2026-10-01', { valorGlobal: null })).value, null);
 });
 
+test('normaliza o tamanho de página aceito pelo PNCP', async () => {
+  globalThis.fetch = respond([[raw(1, '2026-10-01')]]);
+  await recentContracts('44444444000144', { size: 1, now: new Date('2026-10-15T12:00:00Z') });
+  assert.equal(new URL(urls[0]).searchParams.get('tamanhoPagina'), '10');
+});
+
 test('lê da última página para trás e separa os maiores contratos dos mais recentes', async () => {
   globalThis.fetch = respond([[raw(1, '2026-09-20'), raw(9, '2026-09-21')], [raw(3, '2026-09-30'), raw(4, '2026-10-02'), raw(5, '2026-10-01')]]);
   const r = await recentContracts('46523171000104', { keep: 2, size: 50, now: new Date('2026-10-15T12:00:00Z') });

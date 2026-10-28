@@ -20,6 +20,7 @@ import { plenaryPanelHtml } from './plenaryPanel.js';
 import { openDossierModal } from '../dossier.js';
 import { openShareModal } from '../share.js';
 import { openAnalysisModal } from '../analysis.js';
+import { currentLegislatureLabel } from '../legislature.js';
 
 export function politicianCard(p, { heading = 3 } = {}) {
   const isState =
@@ -102,10 +103,10 @@ export function politicianCard(p, { heading = 3 } = {}) {
         <span>Ver perfil</span>
       </button>
       <div class="icon-group">
-      <button class="btn outlined sm icon" data-dossier="${p.id}" title="Gerar Dossiê Oficial em PDF" aria-label="Relatório PDF">
+      <button class="btn outlined sm icon" data-dossier="${p.id}" title="Gerar Dossiê Oficial em PDF" aria-label="Relatório PDF de ${esc(p.name)}">
         <span class="mi u-fs-16" aria-hidden="true">description</span>
       </button>
-      <button class="btn outlined sm icon" data-share="${p.id}" title="Gerar Card Visual para WhatsApp / Redes" aria-label="Card para Redes">
+      <button class="btn outlined sm icon" data-share="${p.id}" title="Gerar Card Visual para WhatsApp / Redes" aria-label="Compartilhar card de ${esc(p.name)}">
         <span class="mi u-fs-16" aria-hidden="true">share</span>
       </button>
       <button class="btn danger sm icon" data-remove="${p.id}" title="Deixar de acompanhar" aria-label="Deixar de acompanhar ${esc(p.name)}">
@@ -331,8 +332,8 @@ export async function openPoliticianDetails(p) {
   const { el, close } = modal(`
     <!-- Cabeçalho do Modal no Estilo Stitch -->
     <div class="stack u-gap-14">
-      <div class="row between nowrap">
-        <div class="row nowrap u-gap-14">
+      <div class="row between nowrap profile-heading">
+        <div class="row nowrap u-gap-14 profile-identity">
           <div class="avatar-wrap">
             ${avatar(p)}
             <span class="avatar-badge-icon">
@@ -614,7 +615,7 @@ export async function openPoliticianDetails(p) {
               <h2 class="u-fs-22 u-c-primary u-fw-800 u-mt-2">${brl(total)}</h2>
               <span class="xs muted">Base: Últimos ${expenses.length} reembolsos registrados na Câmara</span>
             </div>
-            <span class="chip green">57ª Legislatura</span>
+            <span class="chip green">${currentLegislatureLabel()}</span>
           </div>
 
           <div>
@@ -886,8 +887,8 @@ export function bindPoliticianActions(root) {
           politician: p,
           title: 'Fiscalização de Mandato',
           highlight: `Mandato em exercício • ${partyOrBirth(p) || p.uf || 'BR'}`,
-          badge: 'MONITOR CIDADÃO',
-          badgeColor: '#008732',
+          badge: 'COLA CIDADÃ',
+          badgeColor: '#176b3a',
           detailText: `Término previsto: ${m.end}`,
         });
       }
@@ -900,7 +901,8 @@ export function render(root) {
   root.innerHTML = `
     <div class="top">
       <div>
-        <h1>Quem Acompanho</h1>
+        <span class="directory-eyebrow"><span class="mi" aria-hidden="true">bookmark_added</span>Seu acompanhamento</span>
+        <h1>Quem acompanho</h1>
         <p>Atalhos para as pessoas que você escolheu acompanhar depois de ver o perfil delas. A lista fica só neste aparelho.</p>
       </div>
       <div class="row">
@@ -909,12 +911,13 @@ export function render(root) {
     </div>
     ${
       politicians.length
-        ? `<div class="grid g3">${politicians.map((p) => politicianCard(p, { heading: 2 })).join('')}</div>`
+        ? `<p class="directory-count">${politicians.length} ${politicians.length === 1 ? 'pessoa acompanhada' : 'pessoas acompanhadas'}</p><div class="grid g3">${politicians.map((p) => politicianCard(p, { heading: 2 })).join('')}</div>`
         : `
       <div class="card empty">
         <span class="mi" aria-hidden="true">bookmark_add</span>
         <h2>Você ainda não acompanha ninguém</h2>
         <p>Todos os cargos estão abertos no <a href="#/painel">Painel Público</a>. Abra um perfil e toque em Acompanhar, se quiser.</p>
+        <a class="btn primary" href="#/painel">Explorar o Painel Público</a>
       </div>`
     }
   `;

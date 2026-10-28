@@ -63,7 +63,7 @@ export function CustomTabList(props: TabListProps) {
       <ThemedView type="backgroundElement" style={styles.innerContainer}>
         {narrow ? null : (
           <ThemedText type="smallBold" style={styles.brandText}>
-            Monitor Cidadão
+            Cola Cidadã
           </ThemedText>
         )}
         {/* rolável na horizontal: cinco abas não cabem em telas muito estreitas */}

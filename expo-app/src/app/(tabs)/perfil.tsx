@@ -66,7 +66,7 @@ export default function PerfilScreen() {
           Seus dados ficam só neste aparelho
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          O Monitor Cidadão não tem servidor nem conta: a lista de políticos que você acompanha é guardada neste aparelho, e as consultas
+          O Cola Cidadã não tem servidor nem conta: a lista de políticos que você acompanha é guardada neste aparelho, e as consultas
           vão direto às APIs de Dados Abertos da Câmara dos Deputados e do Senado Federal.
         </ThemedText>
         <ThemedText type="small">

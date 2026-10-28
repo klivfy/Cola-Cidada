@@ -1,4 +1,4 @@
-# Cola-Cidada · Monitor Cidadão
+# Cola Cidadã
 
 Transparência sobre quem ocupa cada cargo público, aberta para qualquer pessoa.
 
