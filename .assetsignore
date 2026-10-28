@@ -1,0 +1,25 @@
+# O diretório público é o checkout, mas só estes arquivos e diretórios fazem
+# parte do app. Dependências, testes e ferramentas nunca devem ser publicados.
+node_modules/
+expo-app/
+.git/
+.wrangler/
+.github/
+.claude/
+docs/
+scripts/
+tests/
+test-results/
+playwright-report/
+package.json
+package-lock.json
+playwright.config.mjs
+server.js
+vercel.json
+README.md
+LICENSE
+.gitignore
+.vercelignore
+wrangler.jsonc
+.env*
+*.log

@@ -22,6 +22,18 @@ Requer apenas Node 18+ (sem dependências):
 npm run dev   # http://localhost:5173
 ```
 
+## Deploy no Cloudflare Workers (plano gratuito)
+
+O deploy usa `wrangler.jsonc` e publica somente os arquivos do app. O arquivo `.assetsignore` é obrigatório: o checkout contém `node_modules` e ferramentas de desenvolvimento que não podem ser enviados como assets do Worker.
+
+No Cloudflare, deixe o diretório de saída como `.` e use:
+
+```bash
+npm run deploy
+```
+
+O commit publicado precisa conter `wrangler.jsonc` e `.assetsignore`. Se o Wrangler mostrar `Detected Project Settings` ou perguntar `Do you want to modify these settings?`, ele não encontrou o `wrangler.jsonc` no commit que o Cloudflare clonou; verifique o branch e o commit configurados no projeto.
+
 ## Testes
 
 ```bash
