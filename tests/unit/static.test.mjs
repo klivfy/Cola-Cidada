@@ -1,7 +1,7 @@
 // Verificações estáticas: sintaxe, ícones da fonte subconjunto e textos fictícios removidos.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const root = new URL('../../', import.meta.url);
@@ -78,9 +78,14 @@ test('fontes são servidas do próprio app: nenhum pedido ao Google (LGPD) e nen
 });
 
 test('deploy Cloudflare não publica dependências nem código de desenvolvimento', () => {
-  const ignore = read('.assetsignore');
-  for (const entry of ['node_modules/', 'expo-app/', 'tests/', 'scripts/']) assert.match(ignore, new RegExp(`^${entry.replace('/', '\/')}$`, 'm'));
-  for (const entry of ['src/', 'fonts/', 'fotos/', 'partidos/', 'bandeiras/']) assert.doesNotMatch(ignore, new RegExp(`^${entry.replace('/', '\/')}$`, 'm'));
   const config = JSON.parse(read('wrangler.jsonc'));
-  assert.equal(config.assets.directory, '.');
+  assert.equal(config.assets.directory, './dist');
+  assert.equal(config.build.command, 'npm run build:public');
+  execFileSync(process.execPath, ['scripts/build-public.mjs'], { cwd: root.pathname });
+  for (const entry of ['index.html', 'sw.js', '_headers', 'src/main.js', 'fonts/inter-latin.woff2', 'fonts/OFL-Inter.txt']) {
+    assert.ok(existsSync(new URL(`dist/${entry}`, root)), `${entry} ausente do pacote`);
+  }
+  for (const entry of ['node_modules', 'expo-app', 'tests', 'scripts', 'README.md', 'package.json']) {
+    assert.ok(!existsSync(new URL(`dist/${entry}`, root)), `${entry} incluído no pacote`);
+  }
 });
