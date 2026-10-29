@@ -55,7 +55,7 @@ function CreditsCard({ style }: { style: object[] }) {
 export default function PerfilScreen() {
   const theme = useTheme();
   const snackbar = useSnackbar();
-  const { state, purge } = useStore();
+  const { state, storageError, retryStorage, purge } = useStore();
   const [confirming, setConfirming] = useState(false);
   const card = [styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.border }];
 
@@ -76,6 +76,21 @@ export default function PerfilScreen() {
 
       <CreditsCard style={card} />
 
+      {storageError ? (
+        <View style={card}>
+          <ThemedText type="smallBold" accessibilityRole="alert">Não foi possível {storageError === 'read' ? 'ler' : 'salvar'} os dados neste aparelho</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {storageError === 'read'
+              ? 'Os dados anteriores foram preservados. Tente ler novamente antes de fazer alterações.'
+              : 'Confira o espaço disponível. As alterações recentes podem não estar salvas.'}
+          </ThemedText>
+          <Button label="Tentar novamente" variant="secondary" onPress={async () => {
+            if (await retryStorage()) snackbar.show('Armazenamento disponível novamente.');
+            else snackbar.show('Ainda não foi possível acessar o armazenamento.');
+          }} />
+        </View>
+      ) : null}
+
       <View style={card}>
         <ThemedText type="smallBold" accessibilityRole="header">
           Apagar meus dados
@@ -89,15 +104,16 @@ export default function PerfilScreen() {
             <Button
               label="Apagar tudo"
               variant="danger"
-              onPress={() => {
-                purge();
-                setConfirming(false);
-                snackbar.show('Dados apagados deste aparelho.');
+              onPress={async () => {
+                if (await purge()) {
+                  setConfirming(false);
+                  snackbar.show('Dados apagados deste aparelho.');
+                } else snackbar.show('Não foi possível apagar os dados deste aparelho.');
               }}
             />
           </View>
         ) : (
-          <Button label="Apagar meus dados" variant="danger" disabled={state.politicians.length === 0} onPress={() => setConfirming(true)} />
+          <Button label="Apagar meus dados" variant="danger" onPress={() => setConfirming(true)} />
         )}
       </View>
     </Screen>

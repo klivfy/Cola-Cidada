@@ -8,28 +8,61 @@ const SENADO_BASE = 'https://legis.senado.leg.br/dadosabertos';
 
 // Respostas reaproveitadas por 5 minutos: evita rajadas, mas "Atualizar" e "Verificar agora" trazem dados novos.
 const cache = new Map();
+const pending = new Map();
+let cacheEpoch = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const REQUEST_TIMEOUT_MS = 15_000;
+
+export function clearLiveCache() {
+  cacheEpoch++;
+  cache.clear();
+  pending.clear();
+  deputiesCache = null;
+  senatorsCache = null;
+}
 
 // A API da Câmara derruba conexões sob rajadas de requisições: repete falhas de rede, 429 e 5xx com espera crescente.
 async function getJson(url, headers = {}) {
   const hit = cache.get(url);
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.json;
+  if (pending.has(url)) return pending.get(url);
+  const epoch = cacheEpoch;
+  const request = requestJson(url, headers, epoch).finally(() => {
+    if (pending.get(url) === request) pending.delete(url);
+  });
+  pending.set(url, request);
+  return request;
+}
+
+async function requestJson(url, headers, epoch) {
   let lastError;
+  let retryDelay = 0;
   for (let attempt = 0; attempt < 4; attempt++) {
-    if (attempt) await new Promise((r) => setTimeout(r, 600 * attempt));
+    if (attempt) await new Promise((r) => setTimeout(r, Math.max(600 * attempt, retryDelay)));
+    retryDelay = 0;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const res = await fetch(url, { headers: { Accept: 'application/json', ...headers } });
+      const res = await fetch(url, { headers: { Accept: 'application/json', ...headers }, signal: controller.signal });
       if (res.status === 429 || res.status >= 500) {
         lastError = new Error(`HTTP ${res.status} para ${url}`);
+        if (res.status === 429) {
+          const raw = res.headers?.get?.('Retry-After');
+          const seconds = Number(raw);
+          const delay = Number.isFinite(seconds) ? seconds * 1000 : Date.parse(raw) - Date.now();
+          retryDelay = Number.isFinite(delay) ? Math.min(10_000, Math.max(0, delay)) : 0;
+        }
         continue;
       }
       if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status} para ${url}`), { final: true });
       const json = await res.json();
-      cache.set(url, { json, at: Date.now() });
+      if (epoch === cacheEpoch) cache.set(url, { json, at: Date.now() });
       return json;
     } catch (err) {
       if (err.final) throw err;
-      lastError = err;
+      lastError = err?.name === 'AbortError' ? new Error(`Consulta excedeu ${REQUEST_TIMEOUT_MS / 1000}s: ${url}`) : err;
+    } finally {
+      clearTimeout(timer);
     }
   }
   throw lastError;
@@ -135,9 +168,7 @@ export async function recentNominalVotings(limit = 20) {
   // Páginas em sequência: encerra assim que houver votações suficientes e evita rajadas de requisições.
   for (let page = 1; page <= 6 && out.length < limit; page++) {
     const url = `${CAMARA_BASE}/votacoes?ordem=DESC&ordenarPor=dataHoraRegistro&itens=100&pagina=${page}&idOrgao=180&dataInicio=${since}`;
-    const dados = await getJson(url)
-      .catch(() => new Promise((ok) => setTimeout(ok, 500)).then(() => getJson(url)))
-      .then((r) => r.dados || []);
+    const dados = (await getJson(url)).dados || [];
     if (!dados.length) break;
     out.push(...dados.filter((v) => v.aprovacao !== null && /Sim:\s*\d+/.test(v.descricao || '')));
   }
@@ -169,10 +200,11 @@ export async function sessionAttendees(eventId) {
 }
 
 let deputiesCache = null;
+let deputiesCacheAt = 0;
 
 // Todos os deputados em exercício: a API entrega até 100 por página (≈ 6 páginas), então a lista é montada uma vez.
 export async function allDeputies() {
-  if (deputiesCache) return deputiesCache;
+  if (deputiesCache && Date.now() - deputiesCacheAt < CACHE_TTL_MS) return deputiesCache;
   const list = [];
   for (let page = 1; page <= 10; page++) {
     const { dados } = await getJson(`${CAMARA_BASE}/deputados?itens=100&pagina=${page}&ordem=ASC&ordenarPor=nome`);
@@ -186,15 +218,17 @@ export async function allDeputies() {
     uf: d.siglaUf,
     photo: d.urlFoto,
   }));
+  deputiesCacheAt = Date.now();
   return deputiesCache;
 }
 
 /* ================= SENADO FEDERAL ================= */
 
 let senatorsCache = null;
+let senatorsCacheAt = 0;
 
 export async function allSenators() {
-  if (senatorsCache) return senatorsCache;
+  if (senatorsCache && Date.now() - senatorsCacheAt < CACHE_TTL_MS) return senatorsCache;
   const data = await getJson(`${SENADO_BASE}/senador/lista/atual.json`);
   const list = data?.ListaParlamentarEmExercicio?.Parlamentares?.Parlamentar || [];
   senatorsCache = list.map((item) => {
@@ -216,6 +250,7 @@ export async function allSenators() {
       mandate: [start, end],
     };
   });
+  senatorsCacheAt = Date.now();
   return senatorsCache;
 }
 
@@ -364,17 +399,9 @@ const stateDepCache = new Map();
 export async function allStateDeputies(uf = 'SP') {
   const key = (uf || 'SP').toLowerCase();
   if (stateDepCache.has(key)) return stateDepCache.get(key);
-  try {
-    const res = await fetch(`/src/data/states/${key}.json`);
-    if (res.ok) {
-      const data = await res.json();
-      stateDepCache.set(key, data);
-      return data;
-    }
-  } catch (err) {
-    console.warn(`Fallback para estado ${key}:`, err);
-  }
-  return [];
+  const data = await staticJson(`/src/data/states/${key}.json`);
+  stateDepCache.set(key, data);
+  return data;
 }
 
 export async function searchStateDeputies(uf = 'SP', query = '') {
@@ -395,17 +422,9 @@ const capitalCouncilCache = new Map();
 export async function allCapitalCouncilors(uf = 'SP') {
   const key = (uf || 'SP').toLowerCase();
   if (capitalCouncilCache.has(key)) return capitalCouncilCache.get(key);
-  try {
-    const res = await fetch(`/src/data/capitais/${key}.json`);
-    if (res.ok) {
-      const data = await res.json();
-      capitalCouncilCache.set(key, data);
-      return data;
-    }
-  } catch (err) {
-    console.warn(`Fallback para capital ${key}:`, err);
-  }
-  return [];
+  const data = await staticJson(`/src/data/capitais/${key}.json`);
+  capitalCouncilCache.set(key, data);
+  return data;
 }
 
 export async function searchCapitalCouncilors(uf = 'SP', query = '') {
@@ -448,19 +467,11 @@ export const loadPoloMayors = () => staticJson('/src/data/prefeitos-cidades.json
 const poloCouncilCache = new Map();
 export async function poloCouncilors(uf) {
   const key = String(uf || '').toLowerCase();
-  if (!key) return [];
+  if (!key || key === 'df') return [];
   if (poloCouncilCache.has(key)) return poloCouncilCache.get(key);
-  try {
-    const res = await fetch(`/src/data/cidades/${key}.json`);
-    if (res.ok) {
-      const data = await res.json();
-      poloCouncilCache.set(key, data);
-      return data;
-    }
-  } catch (err) {
-    console.warn(`Fallback para cidades-polo ${key}:`, err);
-  }
-  return [];
+  const data = await staticJson(`/src/data/cidades/${key}.json`);
+  poloCouncilCache.set(key, data);
+  return data;
 }
 
 export async function cityFacts(uf, name) {

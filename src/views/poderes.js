@@ -169,7 +169,8 @@ export async function render(root) {
   try {
     data = await loadPoderes();
   } catch {
-    panel.innerHTML = '<div class="card empty"><p class="muted">Não foi possível carregar os dados de gastos por Poder.</p></div>';
+    panel.innerHTML = '<div class="card empty" role="status"><p class="muted">Não foi possível carregar os dados de gastos por Poder.</p><button class="btn outlined sm" data-retry>Tentar de novo</button></div>';
+    panel.querySelector('[data-retry]').onclick = () => render(root);
     return;
   }
 

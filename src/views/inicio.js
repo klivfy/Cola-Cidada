@@ -3,7 +3,7 @@ import { loadComparison, loadSenateComparison } from '../votes.js';
 import { esc, fmtDate, VOTE_CLASS, $, skeleton } from '../ui.js';
 import { politicianCard, bindPoliticianActions } from './politicos.js';
 import { openAnalysisModal } from '../analysis.js';
-import { upcomingAgenda } from '../api.js';
+import { upcomingAgenda, clearLiveCache } from '../api.js';
 import { toast } from '../ui.js';
 import { safeUrl } from '../urls.js';
 
@@ -147,7 +147,10 @@ export async function render(root) {
     </div>
   `;
 
-  $('#btn-refresh', root).onclick = () => render(root);
+  $('#btn-refresh', root).onclick = () => {
+    clearLiveCache();
+    render(root);
+  };
 
   root.querySelectorAll('.dashboard-segments button').forEach((button) => {
     button.onclick = () => {
@@ -195,7 +198,7 @@ export async function render(root) {
                 <div class="row u-bg-s1 u-p-6-12 u-br-r-sm u-fs-12 u-gap-8">
                   <b>${esc(p.name.split(' ')[0])}</b>
                   <span class="xs muted">(${esc(p.party)}/${esc(p.uf)})</span>
-                  <span class="vote ${cls}">${esc(t || 'Não votou')}</span>
+                  <span class="vote ${cls}">${esc(t || 'Sem registro de voto')}</span>
                 </div>
               `;
             })
@@ -229,7 +232,7 @@ export async function render(root) {
                 <div class="row u-bg-s1 u-p-6-12 u-br-r-sm u-fs-12 u-gap-8">
                   <b>${esc(s.name.split(' ')[0])}</b>
                   <span class="xs muted">(${esc(s.party)}/${esc(s.uf)})</span>
-                  <span class="vote ${cls}">${esc(t || 'Ausente')}</span>
+                  <span class="vote ${cls}">${esc(t || 'Sem registro de voto')}</span>
                 </div>
               `;
             })

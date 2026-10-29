@@ -1,4 +1,4 @@
-import { initialState, reduce } from '../state';
+import { initialState, parseStoredState, recoverStoredState, reduce } from '../state';
 import type { Politician } from '../types';
 
 const mk = (id: string, extra: Partial<Politician> = {}): Politician => ({
@@ -12,6 +12,21 @@ const mk = (id: string, extra: Partial<Politician> = {}): Politician => ({
 });
 
 describe('reduce', () => {
+  it('não aceita estado local corrompido para evitar sobrescrever dados antigos', () => {
+    expect(parseStoredState(JSON.stringify(initialState()))).toEqual(initialState());
+    expect(() => parseStoredState('{"politicians":"erro","alerts":[],"prefs":{},"domicile":{}}')).toThrow('Estado local inválido');
+    expect(() => parseStoredState('{"politicians":[],"alerts":[],"prefs":{"rollcall":"sim"},"domicile":{"state":"SP","city":"São Paulo"}}')).toThrow('Estado local inválido');
+  });
+
+  it('recupera dados salvos e reaplica ações feitas enquanto a leitura falhou', () => {
+    const saved = { ...initialState(), politicians: [mk('antigo')] };
+    const recovered = recoverStoredState(JSON.stringify(saved), [
+      { type: 'add', politician: mk('novo') },
+      { type: 'setPref', key: 'rollcall', value: false },
+    ]);
+    expect(recovered.politicians.map((p) => p.id)).toEqual(['antigo', 'novo']);
+    expect(recovered.prefs.rollcall).toBe(false);
+  });
   it('adiciona e preenche o mandato padrão quando falta', () => {
     const s = reduce(initialState(), { type: 'add', politician: mk('a') });
     expect(s.politicians).toHaveLength(1);

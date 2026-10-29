@@ -102,7 +102,7 @@ function camaraVotingCard(v, deputies, i) {
                   </div>
                 </div>
                 <div class="u-ta-right">
-                  <span class="vote ${voteCls}">${t ? esc(t) : 'Ausente'}</span>
+                  <span class="vote ${voteCls}">${t ? esc(t) : 'Sem registro de voto'}</span>
                 </div>
               </div>`;
             })
@@ -171,7 +171,7 @@ function senadoVotingCard(v, senators, i) {
                   <span class="xs muted">${esc(s.party)}/${esc(s.uf)} • Senador</span>
                 </div>
               </div>
-              <span class="vote ${voteCls}">${vote ? esc(vote) : 'Ausente'}</span>
+              <span class="vote ${voteCls}">${vote ? esc(vote) : 'Sem registro de voto'}</span>
             </div>`;
           })
           .join('')}

@@ -1,6 +1,7 @@
 import { store } from '../store.js';
 import { safeUrl } from '../urls.js';
 import { collectAlerts, prefOn, EXPENSE_THRESHOLD } from '../alerts.js';
+import { clearLiveCache } from '../api.js';
 import { esc, fmtDate, toast, $ } from '../ui.js';
 
 const KINDS = {
@@ -230,6 +231,7 @@ export function render(root) {
     btn.innerHTML = '<span class="spin"></span><span>Consultando Congresso…</span>';
 
     try {
+      clearLiveCache();
       const { alerts: fresh, failures } = await collectAlerts(store.get());
       const count = store.addAlerts(fresh);
       const found = count > 0 ? `${count} ${count === 1 ? 'alerta novo' : 'alertas novos'}.` : 'Nada novo desde a última verificação.';

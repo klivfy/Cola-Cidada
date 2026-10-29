@@ -44,3 +44,18 @@ test('backup inválido e falha de gravação preservam os dados atuais', async (
   });
   expect(outcome).toEqual({ exportedVersion: 1, previewVersion: 1, futureVersion: false, wrongShape: false, unsafeUrl: false, failedWrite: true, unchanged: true });
 });
+
+test('falha ao carregar assembleia aparece como erro e a nova tentativa recupera a lista', async ({ page }) => {
+  let attempts = 0;
+  await page.route('**/src/data/states/sp.json', (route) => {
+    attempts++;
+    return attempts === 1 ? route.fulfill({ status: 503, body: 'indisponível' }) : route.continue();
+  });
+  await go(page, 'painel');
+  await page.locator('[data-section="assembleias"]').click();
+  await expect(page.locator('#painel-results')).toContainText('Não foi possível carregar');
+  await expect(page.locator('#painel-results')).not.toContainText('Nenhuma pessoa encontrada');
+  await page.locator('#painel-retry').click();
+  await expect(page.locator('#painel-results .painel-card').first()).toBeVisible();
+  expect(attempts).toBe(2);
+});

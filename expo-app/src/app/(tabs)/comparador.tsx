@@ -47,7 +47,7 @@ function VoteTag({ vote }: { vote?: string | null }) {
   const color = v === 'sim' ? theme.primary : v === 'não' ? theme.danger : theme.textSecondary;
   return (
     <ThemedText type="smallBold" style={{ color }}>
-      {vote || 'Ausente'}
+      {vote || 'Sem registro de voto'}
     </ThemedText>
   );
 }

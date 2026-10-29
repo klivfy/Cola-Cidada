@@ -2,7 +2,7 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { recentContracts, stateBodies, toContract } from '../../src/contas.js';
+import { recentContracts, stateBodies, toContract, clearAccountsCache } from '../../src/contas.js';
 
 const read = (f) => JSON.parse(readFileSync(new URL(`../../src/data/${f}`, import.meta.url), 'utf8'));
 const entes = read('entes.json');
@@ -77,6 +77,17 @@ test('falha do PNCP tenta de novo uma vez e depois avisa', async () => {
   globalThis.fetch = async () => { calls++; return { ok: false, status: 503 }; };
   await assert.rejects(recentContracts('33333333000133'), /PNCP respondeu 503/);
   assert.equal(calls, 2);
+});
+
+test('atualizar contratos busca dados novos em vez de reutilizar o resultado anterior', async () => {
+  let version = 1;
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ data: [raw(version, '2026-10-01')], totalRegistros: 1, totalPaginas: 1 }) });
+  const options = { now: new Date('2026-10-15T12:00:00Z') };
+  const first = await recentContracts('55555555000155', options);
+  version = 2;
+  assert.equal((await recentContracts('55555555000155', options)).items[0].value, first.items[0].value);
+  clearAccountsCache();
+  assert.equal((await recentContracts('55555555000155', options)).items[0].value, 2000);
 });
 
 test('cnpjs.json cobre as 78 prefeituras e as prefeituras das contas levam o CNPJ (câmaras e governos, não)', () => {

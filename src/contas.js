@@ -4,6 +4,13 @@ import { FEDERATION_UNITS } from './api.js';
 
 const SICONFI = 'https://apidatalake.tesouro.gov.br/ords/siconfi/tt';
 const cache = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const SICONFI_TIMEOUT_MS = 15_000;
+
+export function clearAccountsCache() {
+  cache.clear();
+  contractCache.clear();
+}
 
 async function getItems(path, params) {
   // espaço como %20: com "+" (o padrão de URLSearchParams) o Siconfi responde sem o cabeçalho CORS
@@ -13,18 +20,23 @@ async function getItems(path, params) {
   // Só o host, sem "https://": um endereço completo na URL faz o firewall do Tesouro responder 403.
   const key = typeof location === 'undefined' ? 'node' : location.host.replace(/[^a-z0-9.-]/gi, '-');
   const url = `${SICONFI}/${path}?${query}&origem=${key}`;
-  if (cache.has(url)) return cache.get(url);
+  const cached = cache.get(url);
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.json;
   let lastError;
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt) await new Promise((r) => setTimeout(r, 800 * attempt));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), SICONFI_TIMEOUT_MS);
     try {
-      const res = await fetch(url, { headers: { Accept: 'application/json' } });
+      const res = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
       if (!res.ok) throw new Error(`Siconfi respondeu ${res.status}`);
       const json = await res.json();
-      cache.set(url, json);
+      cache.set(url, { json, at: Date.now() });
       return json;
     } catch (err) {
-      lastError = err;
+      lastError = err?.name === 'AbortError' ? new Error(`Siconfi excedeu ${SICONFI_TIMEOUT_MS / 1000}s`) : err;
+    } finally {
+      clearTimeout(timer);
     }
   }
   throw lastError;
@@ -231,7 +243,8 @@ const MAX_PAGES = 10;
  */
 export async function recentContracts(cnpj, { days = 30, keep = 5, size = 50, now = new Date() } = {}) {
   const key = `${cnpj}:${days}`;
-  if (contractCache.has(key)) return contractCache.get(key);
+  const cached = contractCache.get(key);
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.data;
   // O PNCP rejeita páginas menores que 10 e maiores que 50.
   const pageSize = Math.min(50, Math.max(10, Math.trunc(size) || 50));
   const from = ymd(new Date(now.getTime() - days * 864e5));
@@ -258,7 +271,7 @@ export async function recentContracts(cnpj, { days = 30, keep = 5, size = 50, no
     biggest: [...all].filter((c) => c.value != null).sort((a, b) => b.value - a.value).slice(0, keep),
     items: [...all].sort((a, b) => b.date.localeCompare(a.date)).slice(0, keep),
   };
-  contractCache.set(key, out);
+  contractCache.set(key, { data: out, at: Date.now() });
   return out;
 }
 

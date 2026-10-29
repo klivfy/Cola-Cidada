@@ -3,7 +3,7 @@
 import { store } from '../store.js';
 import { FEDERATION_UNITS, loadStf, loadExecutive, loadCidades, loadCnpjs } from '../api.js';
 import { SECTIONS, loadSection, placeOf, matches } from '../directory.js';
-import { budgetSummary, personnelSpending, federalBodies, stateBodies, recentContracts, SICONFI_URL } from '../contas.js';
+import { budgetSummary, personnelSpending, federalBodies, stateBodies, recentContracts, clearAccountsCache, SICONFI_URL } from '../contas.js';
 import { esc, avatar, partyChip, ROLES, skeleton, tablist, brl, $ } from '../ui.js';
 import { openPoliticianDetails } from './politicos.js';
 import { creditsHtml } from '../creditos.js';
@@ -21,7 +21,15 @@ const view = {
 };
 
 let entesPromise = null;
-const loadEntes = () => (entesPromise ||= fetch('/src/data/entes.json').then((r) => r.json()));
+const loadEntes = () => (entesPromise ||= fetch('/src/data/entes.json')
+  .then((r) => {
+    if (!r.ok) throw new Error(`Falha ao carregar entes: HTTP ${r.status}`);
+    return r.json();
+  })
+  .catch((err) => {
+    entesPromise = null;
+    throw err;
+  }));
 
 const homeUf = () => {
   const d = store.get().domicile || {};
@@ -345,13 +353,15 @@ async function renderPanel(panel) {
 }
 
 async function renderBodies(results, count, ufSel) {
-  const entes = await loadEntes().catch(() => null);
-  if (!entes) {
-    results.innerHTML = '<div class="card empty"><p class="muted">Não foi possível carregar a lista de órgãos.</p></div>';
+  let entes, cidades, cnpjs;
+  try {
+    [entes, { cidades }, cnpjs] = await Promise.all([loadEntes(), loadCidades(), loadCnpjs()]);
+  } catch {
+    count.textContent = '';
+    results.innerHTML = '<div class="card empty" role="status"><p class="muted">Não foi possível carregar a lista de órgãos ou cidades agora.</p><button class="btn outlined sm" data-retry>Tentar de novo</button></div>';
+    results.querySelector('[data-retry]').onclick = () => renderBodies(results, count, ufSel);
     return;
   }
-  const { cidades } = await loadCidades().catch(() => ({ cidades: [] }));
-  const cnpjs = await loadCnpjs().catch(() => ({}));
   const bodies = [...federalBodies(), ...stateBodies(view.uf, entes, cidades, cnpjs)];
   const uf = FEDERATION_UNITS.find((u) => u.uf === view.uf);
   const hasCities = cidades.some((c) => c.uf === view.uf && c.kind === 'polo');
@@ -373,8 +383,12 @@ async function renderBodies(results, count, ufSel) {
       const load = async () => {
         box.innerHTML = skeleton('Consultando o PNCP…', 1);
         try {
-          box.innerHTML = contractsHtml(b, await recentContracts(b.cnpj));
+          box.innerHTML = contractsHtml(b, await recentContracts(b.cnpj)) + '<button class="btn outlined sm" data-refresh>Atualizar contratos</button>';
           box.dataset.loaded = '1';
+          box.querySelector('[data-refresh]').onclick = () => {
+            clearAccountsCache();
+            load();
+          };
         } catch {
           box.innerHTML = `<p class="sm muted" role="status">Falha ao consultar o PNCP.</p><button class="btn outlined sm" data-retry>Tentar de novo</button>`;
           box.querySelector('[data-retry]').onclick = load;
@@ -396,8 +410,12 @@ async function renderBodies(results, count, ufSel) {
         box.innerHTML = skeleton('Consultando o Tesouro Nacional…', 1);
         try {
           const data = b.budget ? await budgetSummary(b.ente) : await personnelSpending(b.ente, b.poder, b.match);
-          box.innerHTML = accountsHtml(b, data);
+          box.innerHTML = accountsHtml(b, data) + '<button class="btn outlined sm" data-refresh>Atualizar contas</button>';
           box.dataset.loaded = '1';
+          box.querySelector('[data-refresh]').onclick = () => {
+            clearAccountsCache();
+            load(true);
+          };
         } catch {
           box.innerHTML = `<p class="sm muted" role="status">Falha ao consultar o Tesouro Nacional.</p>
             <button class="btn outlined sm" data-retry>Tentar de novo<span class="sr-only"> (${esc(b.name)})</span></button>`;
