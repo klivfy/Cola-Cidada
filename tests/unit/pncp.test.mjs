@@ -48,6 +48,7 @@ test('normaliza o tamanho de página aceito pelo PNCP', async () => {
 test('lê da última página para trás e separa os maiores contratos dos mais recentes', async () => {
   globalThis.fetch = respond([[raw(1, '2026-09-20'), raw(9, '2026-09-21')], [raw(3, '2026-09-30'), raw(4, '2026-10-02'), raw(5, '2026-10-01')]]);
   const r = await recentContracts('46523171000104', { keep: 2, size: 50, now: new Date('2026-10-15T12:00:00Z') });
+  assert.match(r.consultedAt, /^\d{4}-\d{2}-\d{2}T/);
   assert.equal(r.total, 5);
   assert.equal(r.partial, false);
   assert.equal(r.sum, (1 + 9 + 3 + 4 + 5) * 1000);
@@ -69,7 +70,7 @@ test('com mais de 500 contratos lê só as 10 últimas páginas e avisa que é p
   assert.equal(urls.length, 11, 'a primeira página e as 10 últimas (a primeira não é lida de novo se estiver entre elas)');
   globalThis.fetch = respond([]);
   const none = await recentContracts('22222222000122', { now: new Date('2026-10-15T12:00:00Z') });
-  assert.deepEqual(none, { days: 30, total: 0, partial: false, sum: 0, biggest: [], items: [] });
+  assert.deepEqual({ ...none, consultedAt: undefined }, { days: 30, consultedAt: undefined, total: 0, partial: false, sum: 0, biggest: [], items: [] });
 });
 
 test('falha do PNCP tenta de novo uma vez e depois avisa', async () => {

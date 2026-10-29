@@ -660,6 +660,8 @@ test.describe('fluxos', () => {
     await expect(card.locator('[id^=ct-] li').first()).toContainText('Reforma da escola 11');
     await expect(card).toContainText('Maiores contratos');
     await expect(card).toContainText('Soma dos valores informados');
+    await expect(card).toContainText('consultado em');
+    await expect(card.locator('[data-refresh]')).toContainText('Atualizar contratos');
     await expect(card).toContainText('emenda parlamentar');
     await expect(card.locator('[id^=ct-] a[href^="https://pncp.gov.br/app/contratos/"]').first()).toBeVisible();
     expect(urls[0]).toContain('cnpjOrgao=');

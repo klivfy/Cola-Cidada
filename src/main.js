@@ -10,6 +10,7 @@ import * as alertas from './views/alertas.js';
 import * as perfil from './views/perfil.js';
 import * as poderes from './views/poderes.js';
 import { refreshFollowed } from './refresh.js';
+import { unreadCount } from './alerts.js';
 
 window.addEventListener('cola:storage-error', () => {
   toast('Não foi possível guardar a alteração neste aparelho. Confira o espaço disponível e exporte um backup.', 'error');
@@ -30,7 +31,7 @@ const app = $('#app');
 let deferredPrompt = null;
 
 function shell() {
-  const unreadAlerts = store.get().alerts.length;
+  const unreadAlerts = unreadCount(store.get().alerts);
 
   app.innerHTML = `
     <div class="app-wrapper">
@@ -53,13 +54,9 @@ function shell() {
             <span class="mi" aria-hidden="true" id="header-theme-icon">dark_mode</span>
           </button>
 
-          <a href="#/alertas" class="btn icon ghost u-position-relative" title="Central de Alertas" aria-label="Alertas">
+          <a href="#/alertas" class="btn icon ghost u-position-relative" id="header-alerts" title="Central de Alertas" aria-label="Alertas, ${unreadAlerts} ${unreadAlerts === 1 ? 'não lido' : 'não lidos'}">
             <span class="mi" aria-hidden="true">notifications</span>
-            ${
-              unreadAlerts > 0
-                ? `<span class="u-position-absolute u-top-4 u-right-4 u-width-8 u-height-8 u-br-50pct u-bg-primary-c"></span>`
-                : ''
-            }
+            <span id="header-unread-dot" class="u-position-absolute u-top-4 u-right-4 u-width-8 u-height-8 u-br-50pct u-bg-primary-c" ${unreadAlerts ? '' : 'hidden'}></span>
           </a>
 
           <a href="#/perfil" class="header-user-btn" title="Perfil do Cidadão">
@@ -362,6 +359,11 @@ applyTheme();
 let lastTheme = store.get().theme;
 
 store.subscribe((s) => {
+  const unread = unreadCount(s.alerts);
+  const alertsLink = $('#header-alerts');
+  if (alertsLink) alertsLink.setAttribute('aria-label', `Alertas, ${unread} ${unread === 1 ? 'não lido' : 'não lidos'}`);
+  const dot = $('#header-unread-dot');
+  if (dot) dot.hidden = unread === 0;
   if (s.theme !== lastTheme) {
     lastTheme = s.theme;
     applyTheme({ animate: true });

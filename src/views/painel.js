@@ -109,6 +109,7 @@ function bodyCard(b, i) {
 }
 
 const fmtDay = (d) => (d ? d.split('-').reverse().join('/') : '');
+const queriedAt = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'horário indisponível';
 
 function contractItem(c) {
   return `<li class="stack u-gap-2 sm u-bg-s2 u-p-8-12 u-br-r-sm">
@@ -120,17 +121,17 @@ function contractItem(c) {
 }
 
 function contractsHtml(b, data) {
-  if (!data.total) return `<p class="sm muted">Nenhum contrato publicado no PNCP nos últimos ${data.days} dias por esta prefeitura.</p>`;
+  if (!data.total) return `<p class="sm muted">Nenhum contrato publicado no PNCP nos últimos ${data.days} dias por esta prefeitura. Fonte: PNCP, consultado em ${esc(queriedAt(data.consultedAt))}.</p>`;
   return `
     <dl class="painel-figures">
       <div><dt>Contratos publicados (${data.days} dias)</dt><dd><b>${data.total.toLocaleString('pt-BR')}</b>${data.partial ? '<span class="xs muted">somados os 500 mais recentes</span>' : ''}</dd></div>
-      <div><dt>Soma dos valores informados</dt><dd><b>${money(data.sum)}</b><span class="xs muted">empenhos e contratos, sem descontar repetições</span></dd></div>
+      <div><dt>Soma dos valores informados</dt><dd><b>${money(data.sum)}</b><span class="xs muted">${data.partial ? 'Apenas os contratos mais recentes consultados; ' : ''}empenhos e contratos, sem descontar repetições</span></dd></div>
     </dl>
     <h3 class="sm u-fw-700">Maiores contratos</h3>
     <ul class="stack u-gap-8">${data.biggest.map(contractItem).join('')}</ul>
     <h3 class="sm u-fw-700">Mais recentes</h3>
     <ul class="stack u-gap-8">${data.items.map(contractItem).join('')}</ul>
-    <p class="xs muted">Fonte: <a href="https://pncp.gov.br/app/contratos" target="_blank" rel="noopener noreferrer">Portal Nacional de Contratações Públicas (PNCP)<span class="sr-only"> (abre em nova aba)</span></a>, consultado agora.
+    <p class="xs muted">Fonte: <a href="https://pncp.gov.br/app/contratos" target="_blank" rel="noopener noreferrer">Portal Nacional de Contratações Públicas (PNCP)<span class="sr-only"> (abre em nova aba)</span></a>, consultado em ${esc(queriedAt(data.consultedAt))}.
     Só o que a prefeitura publicou lá; a Câmara Municipal e outras entidades da cidade têm CNPJ próprio.</p>`;
 }
 
@@ -151,7 +152,7 @@ function accountsHtml(b, data) {
     <dl class="painel-figures">
       ${rows.map(([k, v, note]) => `<div><dt>${k}</dt><dd><b>${v}</b>${note ? `<span class="xs muted">${note}</span>` : ''}</dd></div>`).join('')}
     </dl>
-    <p class="xs muted">${esc(data.institution)} · ${esc(data.periodLabel)}. Fonte: <a href="${SICONFI_URL}" target="_blank" rel="noopener noreferrer">Siconfi, Tesouro Nacional<span class="sr-only"> (abre em nova aba)</span></a>.</p>`;
+    <p class="xs muted">${esc(data.institution)} · ${esc(data.periodLabel)}. Fonte: <a href="${SICONFI_URL}" target="_blank" rel="noopener noreferrer">Siconfi, Tesouro Nacional<span class="sr-only"> (abre em nova aba)</span></a>. Consultado em ${esc(queriedAt(data.consultedAt))}.</p>`;
 }
 
 export async function render(root) {

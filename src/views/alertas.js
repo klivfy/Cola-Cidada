@@ -1,6 +1,6 @@
 import { store } from '../store.js';
 import { safeUrl } from '../urls.js';
-import { collectAlerts, prefOn, EXPENSE_THRESHOLD } from '../alerts.js';
+import { collectAlerts, prefOn, unreadCount, EXPENSE_THRESHOLD } from '../alerts.js';
 import { clearLiveCache } from '../api.js';
 import { esc, fmtDate, toast, $ } from '../ui.js';
 
@@ -25,10 +25,11 @@ export function render(root) {
   const toggles = [
     ['plenario', 'Votações do Plenário', 'Novas votações nominais na Câmara e no Senado, para qualquer pessoa, sem acompanhar ninguém.'],
     ['rollcall', 'Votos de quem você acompanha', 'Como cada deputado ou senador que você acompanha votou nessas votações.'],
-    ['expenses', `Gastos da cota acima de ${limiar}`, 'Notas da cota parlamentar (CEAP) dos deputados federais que você acompanha.'],
+    ['expenses', `Gastos da cota acima de ${limiar}`, 'Despesas CEAP dos deputados e registros CEAPS recentes dos senadores que você acompanha. Valor alto não indica irregularidade.'],
     ['bills', 'Projetos de lei apresentados', 'PLs e PECs de autoria dos deputados federais que você acompanha.'],
   ];
   const counts = Object.fromEntries(Object.keys(KINDS).map((k) => [k, alerts.filter((a) => kindOf(a) === k).length]));
+  const unread = unreadCount(alerts);
   if (activeFilter !== 'all' && !KINDS[activeFilter]) activeFilter = 'all';
 
   root.innerHTML = `
@@ -49,6 +50,7 @@ export function render(root) {
       </div>
       <div class="row page-actions">
         <button class="btn primary" id="check"><span class="mi" aria-hidden="true">sync</span>Verificar Agora</button>
+        ${unread ? '<button class="btn outlined" id="mark-all-read">Marcar todos como lidos</button>' : ''}
       </div>
     </div>
 
@@ -76,7 +78,7 @@ export function render(root) {
           <div class="card soft row between u-p-16 u-bg-secondary-soft u-bl-4-solid-secondary">
             <div>
               <b class="u-c-on-secondary-soft u-fs-14">Ativar Notificações no Dispositivo</b>
-              <p class="xs u-c-on-secondary-soft u-mt-2">Receba avisos na área de trabalho quando houver votações de alto impacto.</p>
+              <p class="xs u-c-on-secondary-soft u-mt-2">Receba um aviso no dispositivo quando a verificação encontrar alertas novos.</p>
             </div>
             <button class="btn primary sm" id="btn-enable-notify">
               <span class="mi" aria-hidden="true">notifications</span>Ativar
@@ -91,19 +93,20 @@ export function render(root) {
           <div class="stack u-gap-14">
             <div class="row between xs muted u-fw-700 u-tt-uppercase">
               <span>● Registros Mais Recentes</span>
-              <span>${alerts.length} eventos monitorados</span>
+              <span>${unread} ${unread === 1 ? 'não lido' : 'não lidos'} · ${alerts.length} eventos</span>
             </div>
             <p class="sm muted" id="alerts-empty-filter" hidden>Nenhum alerta deste tipo ainda.</p>
             ${alerts
               .map((a) => {
                 const k = KINDS[kindOf(a)];
                 return `
-              <article class="card stack u-gap-10 u-bl-4-solid-primary alert-item" data-kind="${kindOf(a)}">
+              <article class="card stack u-gap-10 u-bl-4-solid-primary alert-item" data-kind="${kindOf(a)}" data-alert-id="${esc(a.id)}">
                 <div class="row between">
                   <span class="chip ${k.chip} xs"><span class="mi u-fs-12" aria-hidden="true">${k.icon}</span>${k.label}</span>
                   <span class="xs muted">${fmtDate(a.ts)}</span>
                 </div>
                 <p class="u-fs-14 u-fw-600 u-lh-1_45">${esc(a.text)}</p>
+                <button type="button" class="btn ghost sm u-align-self-flex-start" data-alert-read="${esc(a.id)}" aria-label="${a.read === true ? 'Marcar como não lido' : 'Marcar como lido'}: ${esc(a.text.slice(0, 80))}">${a.read === true ? 'Marcar como não lido' : 'Marcar como lido'}</button>
                 ${
                   safeUrl(a.url) && k.link
                     ? `<a class="btn outlined sm u-align-self-flex-start" href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener noreferrer">${k.link}<span class="sr-only"> (abre em nova aba)</span><span class="mi u-fs-14" aria-hidden="true">open_in_new</span></a>`
@@ -130,7 +133,7 @@ export function render(root) {
           <p class="sm muted u-lh-1_5">
             As votações do Plenário valem para todo mundo. ${
               politicians.length
-                ? `Votos, gastos e projetos cobrem as <b>${politicians.length} pessoas</b> que você acompanha (gastos e projetos só existem para deputados federais).`
+                ? `Votos das pessoas acompanhadas aparecem quando a fonte registra o voto. Gastos CEAP de deputados e CEAPS de senadores são consultados acima do limite informado; projetos de lei autorais cobrem deputados federais. Você acompanha <b>${politicians.length} pessoas</b>.`
                 : 'Votos, gastos e projetos aparecem quando você acompanha alguém.'
             } A consulta acontece quando você toca em "Verificar agora"; com as notificações do aparelho ativadas, o primeiro alerta novo também aparece como notificação.
           </p>
@@ -224,6 +227,19 @@ export function render(root) {
     };
   });
   applyFilter();
+
+  $('#mark-all-read', root)?.addEventListener('click', () => {
+    store.markAllAlertsRead();
+    $('#check', root)?.focus();
+  });
+  root.querySelectorAll('[data-alert-read]').forEach((button) => {
+    button.onclick = () => {
+      const id = button.dataset.alertRead;
+      const read = store.get().alerts.find((a) => a.id === id)?.read === true;
+      store.markAlertRead(id, !read);
+      [...root.querySelectorAll('[data-alert-read]')].find((el) => el.dataset.alertRead === id)?.focus();
+    };
+  });
 
   $('#check', root).onclick = async (e) => {
     const btn = e.currentTarget;

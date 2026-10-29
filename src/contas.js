@@ -30,7 +30,7 @@ async function getItems(path, params) {
     try {
       const res = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
       if (!res.ok) throw new Error(`Siconfi respondeu ${res.status}`);
-      const json = await res.json();
+      const json = { ...await res.json(), consultedAt: new Date().toISOString() };
       cache.set(url, { json, at: Date.now() });
       return json;
     } catch (err) {
@@ -58,7 +58,7 @@ const value = (items, conta, coluna) => items.find((i) => i.cod_conta === conta 
 // Balanço orçamentário (RREO, anexo 1): receita realizada e despesa empenhada, liquidada e paga no ano.
 export async function budgetSummary(ente) {
   for (const [year, period] of recentPeriods(6, 2)) {
-    const { items } = await getItems('rreo', {
+    const { items, consultedAt } = await getItems('rreo', {
       an_exercicio: year,
       nr_periodo: period,
       co_tipo_demonstrativo: 'RREO',
@@ -71,6 +71,7 @@ export async function budgetSummary(ente) {
       year,
       period,
       periodLabel: `${period}º bimestre de ${year}`,
+      consultedAt,
       institution: items[0].instituicao,
       revenueForecast: value(items, 'TotalReceitas', 'PREVISÃO ATUALIZADA'),
       revenue: value(items, 'TotalReceitas', 'Até o Bimestre'),
@@ -88,6 +89,7 @@ export async function budgetSummary(ente) {
 export async function personnelSpending(ente, poder, match) {
   for (const [year, period] of recentPeriods(3, 4)) {
     const found = [];
+    let consultedAt;
     for (let offset = 0; offset < 20000; offset += 5000) {
       const page = await getItems('rgf', {
         an_exercicio: year,
@@ -101,6 +103,7 @@ export async function personnelSpending(ente, poder, match) {
         ...(offset ? { offset } : {}),
       });
       const items = page.items || [];
+      consultedAt = page.consultedAt;
       found.push(...items.filter((i) => match.test(i.instituicao)));
       // o órgão já apareceu inteiro nesta página, ou acabou: não baixa o resto
       if (!page.hasMore || (found.length && !items.slice(-1).some((i) => match.test(i.instituicao)))) break;
@@ -113,6 +116,7 @@ export async function personnelSpending(ente, poder, match) {
       year,
       period,
       periodLabel: `12 meses até o ${period}º quadrimestre de ${year}`,
+      consultedAt,
       institution: found[0].instituicao,
       gross: total?.valor ?? null,
       net: net?.valor ?? null,
@@ -265,6 +269,7 @@ export async function recentContracts(cnpj, { days = 30, keep = 5, size = 50, no
   const sum = all.reduce((acc, c) => acc + (c.value || 0), 0);
   const out = {
     days,
+    consultedAt: new Date().toISOString(),
     total,
     partial: all.length < total,
     sum,

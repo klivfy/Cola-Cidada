@@ -35,14 +35,15 @@ test('backup inválido e falha de gravação preservam os dados atuais', async (
     const futureVersion = store.importJson('{"schemaVersion":999,"politicians":[]}');
     const wrongShape = store.importJson('{"politicians":[],"alerts":42,"prefs":null}');
     const unsafeUrl = store.importJson('{"politicians":[{"id":"a","name":"Teste","pageUrl":"javascript:alert(1)"}]}');
+    const invalidRead = store.importJson('{"politicians":[],"alerts":[{"id":"a","text":"Teste","read":"sim"}]}');
     const setItem = Storage.prototype.setItem;
     Storage.prototype.setItem = () => { throw new Error('Sem espaço'); };
     let failedWrite = false;
     try { store.set({ theme: 'dark' }); } catch { failedWrite = true; }
     Storage.prototype.setItem = setItem;
-    return { exportedVersion, previewVersion: preview.version, futureVersion, wrongShape, unsafeUrl, failedWrite, unchanged: store.exportJson() === original };
+    return { exportedVersion, previewVersion: preview.version, futureVersion, wrongShape, unsafeUrl, invalidRead, failedWrite, unchanged: store.exportJson() === original };
   });
-  expect(outcome).toEqual({ exportedVersion: 1, previewVersion: 1, futureVersion: false, wrongShape: false, unsafeUrl: false, failedWrite: true, unchanged: true });
+  expect(outcome).toEqual({ exportedVersion: 1, previewVersion: 1, futureVersion: false, wrongShape: false, unsafeUrl: false, invalidRead: false, failedWrite: true, unchanged: true });
 });
 
 test('falha ao carregar assembleia aparece como erro e a nova tentativa recupera a lista', async ({ page }) => {
@@ -58,4 +59,33 @@ test('falha ao carregar assembleia aparece como erro e a nova tentativa recupera
   await page.locator('#painel-retry').click();
   await expect(page.locator('#painel-results .painel-card').first()).toBeVisible();
   expect(attempts).toBe(2);
+});
+
+test('leitura dos alertas persiste e atualiza o indicador do cabeçalho', async ({ page }) => {
+  await seed(page, { politicians: [], alerts: [
+    { id: 'antigo', ts: '2026-01-01', kind: 'plenario', text: 'Registro antigo' },
+    { id: 'lido', ts: '2026-01-02', kind: 'votacao', text: 'Registro já lido', read: true },
+  ] });
+  await go(page, 'alertas');
+  await expect(page.locator('#header-alerts')).toHaveAttribute('aria-label', 'Alertas, 1 não lido');
+  await page.locator('[data-alert-read="antigo"]').click();
+  await expect(page.locator('#header-alerts')).toHaveAttribute('aria-label', 'Alertas, 0 não lidos');
+  await expect(page.locator('#header-unread-dot')).toBeHidden();
+  await page.reload();
+  await expect(page.locator('[data-alert-read="antigo"]')).toContainText('Marcar como não lido');
+  await page.locator('[data-alert-read="lido"]').click();
+  await expect(page.locator('#header-alerts')).toHaveAttribute('aria-label', 'Alertas, 1 não lido');
+  await page.locator('#mark-all-read').click();
+  await expect(page.locator('#header-alerts')).toHaveAttribute('aria-label', 'Alertas, 0 não lidos');
+  await page.evaluate(async () => {
+    const { store } = await import('/src/store.js');
+    store.addAlerts([{ id: 'novo', ts: '2026-01-03', kind: 'plenario', text: 'Novo registro' }]);
+  });
+  await expect(page.locator('#header-alerts')).toHaveAttribute('aria-label', 'Alertas, 1 não lido');
+  const backedUp = await page.evaluate(async () => {
+    const { store } = await import('/src/store.js');
+    const json = store.exportJson();
+    return store.importJson(json) && JSON.parse(json).alerts.filter((a) => a.read !== true).length === 1;
+  });
+  expect(backedUp).toBe(true);
 });

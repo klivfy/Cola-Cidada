@@ -1,7 +1,11 @@
 // Alertas sem rede: as consultas são trocadas por funções falsas.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectAlerts, prefOn } from '../../src/alerts.js';
+import { collectAlerts, prefOn, unreadCount } from '../../src/alerts.js';
+
+test('só alertas não lidos entram no indicador; registros antigos começam não lidos', () => {
+  assert.equal(unreadCount([{ id: 'antigo' }, { id: 'lido', read: true }, { id: 'novo', read: false }]), 2);
+});
 
 const camara = async (pols) => [
   { id: 'v1', data: '2026-09-02', descricao: 'Aprovado o PL do saneamento.', byPol: Object.fromEntries(pols.filter((p) => p.camaraId).map((p) => [p.id, 'Sim'])) },

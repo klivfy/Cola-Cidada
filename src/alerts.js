@@ -4,6 +4,7 @@ import { deputyExpenses, deputyPropositions, senatorCeaps } from './api.js';
 import { loadComparison, loadSenatePublic, mapLimit } from './votes.js';
 
 export const EXPENSE_THRESHOLD = 5000;
+export const unreadCount = (alerts = []) => alerts.filter((a) => a.read !== true).length;
 const CEAPS_WINDOW_DAYS = 90;
 
 const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });

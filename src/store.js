@@ -31,7 +31,8 @@ function normalize(value, legacy = false) {
       }
     }
   }
-  if (alerts.some((a) => !isRecord(a) || typeof a.id !== 'string' || typeof a.text !== 'string' || (a.url != null && !safeUrl(a.url)))) throw new Error('Alerta inválido');
+  if (alerts.some((a) => !isRecord(a) || typeof a.id !== 'string' || typeof a.text !== 'string' ||
+      (a.read != null && typeof a.read !== 'boolean') || (a.url != null && !safeUrl(a.url)))) throw new Error('Alerta inválido');
   if (value.prefs != null && (!isRecord(value.prefs) || Object.values(value.prefs).some((v) => typeof v !== 'boolean'))) throw new Error('Preferências inválidas');
   if (value.domicile != null && (!isRecord(value.domicile) || typeof value.domicile.state !== 'string' || typeof value.domicile.city !== 'string')) throw new Error('Domicílio inválido');
   if (value.theme != null && !['system', 'light', 'dark'].includes(value.theme)) throw new Error('Tema inválido');
@@ -96,9 +97,17 @@ export const store = {
   setPref(k, v) { this.set({ prefs: { ...state.prefs, [k]: v } }); },
   addAlerts(list) {
     const known = new Set(state.alerts.map((a) => a.id));
-    const fresh = list.filter((a) => !known.has(a.id));
+    const fresh = list.filter((a) => !known.has(a.id)).map((a) => ({ ...a, read: false }));
     if (fresh.length) this.set({ alerts: [...fresh, ...state.alerts].slice(0, 200) });
     return fresh.length;
+  },
+  markAlertRead(id, read = true) {
+    if (!state.alerts.some((a) => a.id === id && (a.read === true) !== read)) return;
+    this.set({ alerts: state.alerts.map((a) => a.id === id ? { ...a, read } : a) });
+  },
+  markAllAlertsRead() {
+    if (!state.alerts.some((a) => a.read !== true)) return;
+    this.set({ alerts: state.alerts.map((a) => ({ ...a, read: true })) });
   },
   exportJson: () => JSON.stringify({ schemaVersion: BACKUP_VERSION, ...state }, null, 2),
   previewImport(jsonString) {
