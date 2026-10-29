@@ -40,14 +40,14 @@ Ordem sugerida: **P0** antes do deploy, **P1** logo em seguida, **P2** quando ho
 
 ## P1 — logo após o deploy
 
-### 5. Fonte Actor sem negrito real — 🟡 proposta implementada, aguardando aprovação de design
+### 5. Fonte Actor sem negrito real — ✅ feito com Inter local
 - **Problema:** a Actor só tem peso 400. Todo `font-weight: 600/700/800` é negrito sintético, borrado e mais largo. Também não há itálico real.
 - **Opções:**
   - (a) Actor só em títulos e marca, e uma fonte com pesos reais no corpo (fonte do sistema, Inter, Atkinson Hyperlegible).
   - (b) Manter a Actor e trocar o negrito por tamanho e cor na hierarquia.
 - **Recomendação:** (a) com a fonte do sistema no corpo: zero download e melhor legibilidade em textos densos.
-- **Feito (branch, sem merge):** corpo, controles e títulos de card (h2–h4) passam para a fonte do sistema, com negrito real. A Actor fica nos títulos grandes de página (h1, `.display-*`, `.headline-large`) e na marca, com `font-synthesis: none`, então nunca é engrossada à força. Efeito colateral bom: os números passam a ter algarismos alinhados. Efeito a avaliar: o texto deixa de ter a cara da Actor fora dos títulos grandes. Para voltar atrás, basta reverter o commit.
-- **Esforço:** meio dia, mais revisão visual das telas. **Quem decide:** design/marca.
+- **Feito:** a interface web usa Inter variável local em pesos de 400 a 700. A fonte integra o sistema visual do Stitch, não faz pedidos a terceiros e elimina o negrito sintético da Actor. O Expo usa a fonte do sistema em cada plataforma, com a mesma escala e paleta semântica.
+- **Validação:** testes estáticos impedem o retorno de fontes externas e verificam a presença dos arquivos locais.
 
 ### 6. Fonte de ícones de cerca de 1 MB — ✅ feito
 - **Problema:** a Material Symbols é baixada inteira (woff2 de cerca de 975 KB, com quatro eixos variáveis) para uns 60 ícones.
@@ -116,7 +116,7 @@ Ordem sugerida: **P0** antes do deploy, **P1** logo em seguida, **P2** quando ho
 | 2 | ~~Conteúdo por palavras-chave~~ ✅ (Linguagem Cidadã removida) | P0 | feito | — |
 | 3 | ~~Mandato estadual por UF~~ ✅ | P0 | feito | — |
 | 4 | ~~Domicílio no cadastro~~ ✅ | P0 | feito | — |
-| 5 | Fonte com pesos reais (implementada em branch) | P1 | revisão visual | Sim (marca) |
+| 5 | ~~Fonte com pesos reais~~ ✅ (Inter local) | P1 | feito | — |
 | 6 | ~~Subconjunto da fonte de ícones~~ ✅ | P1 | feito | — |
 | 7 | ~~Testes e CI~~ ✅ | P1 | feito | — |
 | 8 | ~~Contraste WCAG AA~~ ✅ | P1 | feito | — |

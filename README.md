@@ -111,17 +111,17 @@ Os testes de navegador bloqueiam as APIs públicas, então rodam offline e não 
   - presença nas votações nominais, separando ausências justificadas (licença, missão, atividade parlamentar) de não comparecimento; votos secretos contam como presença;
   - fidelidade à orientação publicada para o partido (votações com bancada liberada ou sem orientação ficam fora da taxa). Poucas votações têm orientação, então a amostra costuma ser pequena e o painel mostra quantas foram medidas.
 - **Agenda Legislativa:** próximos eventos oficiais da Câmara (API `/eventos`) na tela inicial.
-- **Detecção Inteligente de "Jabutis" & Sumarizador Cívico (Fase 8):**
-  - **Scanner de Jabutis (Contrabando Legislativo):** Algoritmo semântico em linguagem natural (*client-side* no navegador, 100% privado e em conformidade estrita com a LGPD) que audita a coerência temática de emendas e artigos de Medidas Provisórias e Projetos de Lei. Emite alertas de risco (*Baixo, Médio, Alto*) e cita a jurisprudência vinculante do STF (ADI 5127).
-  - **Sumarizador Didático de Proposições:** Síntese instantânea em linguagem simples explicando: *O que muda na prática*, *Impacto financeiro e orçamentário*, e *Quem ganha e quem paga*.
-  - **Simulador Interativo de Texto:** Ferramenta interativa para o cidadão colar qualquer texto de emenda, parágrafo ou artigo de lei e auditar na hora a presença de temas alheios ao núcleo da matéria.
+- **Resumo oficial e Scanner de Jabutis (Fase 8):**
+  - **Resumo Oficial:** exibe ementa, identificação, data e links oficiais da Câmara ou do Senado, sem atribuir intenção ou impacto não publicado pela fonte.
+  - **Scanner de Jabutis (Contrabando Legislativo):** análise automática por palavras-chave, identificada na tela como estimativa, que procura divergências temáticas em emendas e artigos e referencia a ADI 5127 do STF.
+  - **Simulador Interativo de Texto:** permite colar um trecho legislativo para estimar a presença de temas diferentes do núcleo da matéria; o processamento ocorre somente no navegador.
 - **Glossário Cívico Interativo:**
   - Dicionário didático embutido com busca rápida para termos legislativos (*Obstrução, Quórum Qualificado, Jabuti, Substitutivo, DVS, MPV, Emendas Pix*).
-- **Experiência Cívica & Governança (Fase 9 — Conforme Stitch Design System):**
-  - **Onboarding Cívico Interativo:** Fluxo guiado em 3 passos para novos usuários apresentando a privacidade radical da LGPD (Art. 5º, II), a conexão com dados abertos oficiais e o ciclo de auditoria de mandato.
-  - **Minha Cola Eleitoral (Cédula Cívica de Mandatos):** Assistente dedicado para preenchimento e vinculação rápida de todos os cargos eletivos (Presidente, Governador, Senadores, Deputados Federais, Estaduais e Vereadores), com visualização do status de preenchimento.
-  - **Painel de Governança & Score de Vigilância Cívica:** Termômetro no Perfil que calcula o índice de vigilância do cidadão (0 a 100 pontos) com base na cobertura de mandatos vigiados, deliberações oficiais checadas e auditorias realizadas.
-  - **Floating Action Button (FAB MD3):** Botão flutuante de ação rápida posicionado na interface para seguir novos representantes ou auditar votações instantaneamente de qualquer tela.
+- **Experiência cívica conforme o Stitch Design System:**
+  - **Consulta pública imediata:** o primeiro acesso abre diretamente o Painel Público, sem cadastro, identificação de voto ou etapa obrigatória de onboarding.
+  - **Acompanhamento opcional:** a pessoa pode acompanhar um agente público depois de consultar seu perfil; a escolha fica somente no dispositivo.
+  - **Layout responsivo:** barra lateral e painel em três colunas no desktop, navegação inferior e seções segmentadas no celular.
+  - **Hierarquia editorial:** banner de fontes oficiais, cartões tonais, filtros e estados de seleção seguem os padrões visuais do material Stitch sem introduzir dados fictícios do protótipo.
 - **Identidade inspirada no Google Stitch e no Material Design 3:**
   - **Tipografia Inter:** Fonte variável servida localmente em pesos de 400 a 700, sem pedidos do navegador a terceiros.
   - **Paleta Tonal M3 (`md-sys-color-*`):** Cores tonais dinâmicas adaptativas (Verde Cívico tonal 40/80, Azul Federal tonal 40/80, Ouro República tonal 40/80) com transição fluida entre Tema Claro e Tema Escuro (*Dark Mode*).

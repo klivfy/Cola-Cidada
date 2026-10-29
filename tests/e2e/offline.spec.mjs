@@ -10,7 +10,7 @@ test('app shell abre sem rede depois de ser instalado', async ({ page, context }
     if (!('serviceWorker' in navigator)) throw new Error('Service Worker indisponível');
     await navigator.serviceWorker.ready;
   });
-  await expect.poll(() => page.evaluate(() => caches.keys().then((keys) => keys.some((k) => k.startsWith('monitor-cidadao-'))))).toBe(true);
+  await expect.poll(() => page.evaluate(() => caches.keys().then((keys) => keys.some((k) => k.startsWith('cola-cidada-'))))).toBe(true);
 
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
