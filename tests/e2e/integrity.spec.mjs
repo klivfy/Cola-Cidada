@@ -11,6 +11,19 @@ test('o acompanhamento não atribui despesas sem dados oficiais', async ({ page 
   await expect(page.locator('#feed-filters')).not.toContainText('Auditorias CEAP');
 });
 
+test('falha das fontes aparece como indisponibilidade e oferece nova tentativa', async ({ page }) => {
+  await page.route('https://dadosabertos.camara.leg.br/**', (route) => route.fulfill({ status: 503, body: 'indisponível' }));
+  await page.route('https://legis.senado.leg.br/**', (route) => route.fulfill({ status: 503, body: 'indisponível' }));
+  await seed(page);
+  await page.reload();
+  await go(page, 'inicio');
+  await expect(page.locator('#feed')).toContainText('Não foi possível consultar', { timeout: 30_000 });
+  await expect(page.locator('#feed')).toContainText('Tentar de novo');
+  await expect(page.locator('#feed')).not.toContainText('Sem votações nominais recentes');
+  await expect(page.locator('#agenda-list')).toContainText('Não foi possível carregar a agenda');
+  await expect(page.locator('#agenda-list')).toContainText('Tentar de novo');
+});
+
 test('backup inválido e falha de gravação preservam os dados atuais', async ({ page }) => {
   await seed(page);
   await go(page, 'perfil');

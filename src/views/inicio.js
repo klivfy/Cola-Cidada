@@ -167,10 +167,16 @@ export async function render(root) {
   const feed = $('#feed', root);
   try {
     const items = [];
+    const unavailable = [];
 
     // 1. Busca Votações da Câmara
     if (deputies.length) {
-      const rowsCam = await loadComparison(politicians, 6);
+      let rowsCam = [];
+      try {
+        rowsCam = await loadComparison(politicians, 6, () => unavailable.push('parte das votações da Câmara'));
+      } catch {
+        unavailable.push('votações da Câmara');
+      }
       for (const v of rowsCam) {
         items.push({
           type: 'camara',
@@ -199,7 +205,12 @@ export async function render(root) {
 
     // 2. Busca Votações do Senado
     if (senators.length) {
-      const rowsSen = await loadSenateComparison(politicians, 6);
+      let rowsSen = [];
+      try {
+        rowsSen = await loadSenateComparison(politicians, 6);
+      } catch {
+        unavailable.push('votações do Senado');
+      }
       for (const v of rowsSen) {
         items.push({
           type: 'senado',
@@ -227,7 +238,10 @@ export async function render(root) {
     }
 
     if (!items.length) {
-      feed.innerHTML = '<div class="card empty"><p class="muted">Sem votações nominais recentes registradas.</p></div>';
+      feed.innerHTML = unavailable.length
+        ? `<div class="card empty" role="status"><p>Não foi possível consultar ${esc(unavailable.join(' e '))} agora.</p><button type="button" class="btn outlined sm" data-feed-retry>Tentar de novo</button></div>`
+        : '<div class="card empty"><p class="muted">Sem votações nominais recentes registradas.</p></div>';
+      feed.querySelector('[data-feed-retry]')?.addEventListener('click', () => render(root));
       return;
     }
 
@@ -241,7 +255,7 @@ export async function render(root) {
         return;
       }
 
-      feed.innerHTML = filtered
+      feed.innerHTML = (unavailable.length ? `<div class="card soft" role="status"><p>Consulta parcial: ${esc(unavailable.join(' e '))} indisponível.</p><button type="button" class="btn outlined sm" data-feed-retry>Tentar de novo</button></div>` : '') + filtered
         .map((it, idx) => {
           return `
             <article class="card stack u-gap-12">
@@ -274,6 +288,8 @@ export async function render(root) {
         })
         .join('');
 
+      feed.querySelector('[data-feed-retry]')?.addEventListener('click', () => render(root));
+
       feed.querySelectorAll('.btn-feed-analyze').forEach((b) => {
         b.onclick = () => {
           const idx = parseInt(b.dataset.index, 10);
@@ -305,7 +321,8 @@ export async function render(root) {
       };
     });
   } catch (err) {
-    feed.innerHTML = '<div class="card empty"><span class="mi" aria-hidden="true">cloud_off</span><p class="muted">Falha temporária ao carregar feed do Congresso.</p></div>';
+    feed.innerHTML = '<div class="card empty" role="status"><span class="mi" aria-hidden="true">cloud_off</span><p>Falha temporária ao carregar as votações do Congresso.</p><button type="button" class="btn outlined sm" data-feed-retry>Tentar de novo</button></div>';
+    feed.querySelector('[data-feed-retry]')?.addEventListener('click', () => render(root));
   }
 }
 
@@ -354,6 +371,7 @@ async function loadAgenda(root) {
       }
     }
   } catch {
-    list.innerHTML = '<p class="muted sm">Não foi possível carregar a agenda oficial agora.</p>';
+    list.innerHTML = '<p class="muted sm" role="status">Não foi possível carregar a agenda oficial agora.</p><button type="button" class="btn outlined sm" data-agenda-retry>Tentar de novo</button>';
+    list.querySelector('[data-agenda-retry]')?.addEventListener('click', () => loadAgenda(root));
   }
 }

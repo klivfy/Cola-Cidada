@@ -137,7 +137,7 @@ export async function recentNominalVotings(limit = 20) {
     const url = `${CAMARA_BASE}/votacoes?ordem=DESC&ordenarPor=dataHoraRegistro&itens=100&pagina=${page}&idOrgao=180&dataInicio=${since}`;
     const dados = await getJson(url)
       .catch(() => new Promise((ok) => setTimeout(ok, 500)).then(() => getJson(url)))
-      .then((r) => r.dados || [], () => []);
+      .then((r) => r.dados || []);
     if (!dados.length) break;
     out.push(...dados.filter((v) => v.aprovacao !== null && /Sim:\s*\d+/.test(v.descricao || '')));
   }
@@ -267,7 +267,7 @@ export async function senatorVotes(senadoId, limit = 10) {
       .slice(0, limit);
   } catch (err) {
     console.warn(`Erro ao carregar votações do senador ${senadoId}:`, err);
-    return [];
+    throw err;
   }
 }
 

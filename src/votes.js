@@ -35,10 +35,11 @@ export function partyBreakdown(votes) {
 
 // Votações nominais recentes da Câmara com o voto de todos os deputados (dado público) e, à parte,
 // o de quem a pessoa acompanha (byPol), para os cartões e os alertas.
-export async function loadComparison(politicians = [], limit = 8) {
+export async function loadComparison(politicians = [], limit = 8, onPartial = () => {}) {
   const deputies = politicians.filter((p) => p.camaraId);
   // só votações nominais do Plenário: as simbólicas não têm lista de votos
   const votings = await recentNominalVotings(limit + 4);
+  let failed = 0;
   const rows = await mapLimit(votings, 3, async (v) => {
     try {
       const raw = await votesOf(v.id);
@@ -54,9 +55,12 @@ export async function loadComparison(politicians = [], limit = 8) {
       for (const d of deputies) byPol[d.id] = votes.find((x) => x.id === d.camaraId)?.vote ?? null;
       return { ...v, votes, tally: tallyOf(votes), byPol, category: getThematicCategory(v.descricao || '') };
     } catch {
+      failed += 1;
       return null;
     }
   });
+  if (failed && failed === votings.length) throw new Error('Falha ao consultar os votos da Câmara');
+  if (failed) onPartial(failed);
   return rows.filter(Boolean).slice(0, limit);
 }
 
