@@ -2,7 +2,7 @@ import { copyFile, mkdir, readdir, rm, stat } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 
 const output = 'dist';
-const rootFiles = ['index.html', 'sw.js', 'manifest.webmanifest', 'icon.svg', '_headers'];
+const rootFiles = ['index.html', 'sw.js', 'manifest.webmanifest', 'icon.svg', '_headers', 'fonts/OFL-Inter.txt'];
 const directories = new Map([
   ['src', new Set(['.js', '.css', '.json'])],
   ['fonts', new Set(['.woff2'])],
