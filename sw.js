@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cola-cidada-v31';
+const CACHE_NAME = 'cola-cidada-v32';
 const APP_SHELL = [
   '/',
   '/index.html',

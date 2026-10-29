@@ -210,9 +210,11 @@ export function render(root) {
   // Exportar Backup
   const handleExport = () => {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([store.exportJson()], { type: 'application/json' }));
+    const url = URL.createObjectURL(new Blob([store.exportJson()], { type: 'application/json' }));
+    a.href = url;
     a.download = `monitor-cidadao-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
     toast('Backup exportado com sucesso.');
   };
 
@@ -225,16 +227,27 @@ export function render(root) {
     importInput.onchange = (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      if (file.size > 5_000_000) {
+        toast('Backup muito grande (limite de 5 MB).', 'error');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (event) => {
         const text = event.target?.result;
-        if (text && store.importJson(text)) {
+        const preview = store.previewImport(text);
+        if (!preview) {
+          toast('Arquivo de backup inválido.', 'error');
+          return;
+        }
+        const valid = window.confirm(`Restaurar este backup com ${preview.politicians} pessoa(s) acompanhada(s) e ${preview.alerts} alerta(s)? Os dados atuais deste aparelho serão substituídos.`);
+        if (valid && store.importJson(text)) {
           toast('Dados restaurados com sucesso!');
           render(root);
-        } else {
-          toast('Arquivo de backup inválido.', 'error');
+        } else if (valid) {
+          toast('Não foi possível restaurar o backup. Confira o arquivo e o espaço disponível no aparelho.', 'error');
         }
       };
+      reader.onerror = () => toast('Não foi possível ler o arquivo de backup.', 'error');
       reader.readAsText(file);
     };
   }

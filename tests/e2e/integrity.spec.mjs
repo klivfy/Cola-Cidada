@@ -1,0 +1,30 @@
+import { test, expect, seed, go } from './fixtures.mjs';
+
+test('o acompanhamento não atribui despesas sem dados oficiais', async ({ page }) => {
+  await page.route('https://dadosabertos.camara.leg.br/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"dados":[]}' }));
+  await page.route('https://legis.senado.leg.br/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await seed(page);
+  await page.reload();
+  await go(page, 'inicio');
+  await expect(page.locator('#feed')).toContainText('Sem votações nominais recentes');
+  await expect(page.locator('#feed')).not.toContainText('Reembolso de Verba');
+  await expect(page.locator('#feed-filters')).not.toContainText('Auditorias CEAP');
+});
+
+test('backup inválido e falha de gravação preservam os dados atuais', async ({ page }) => {
+  await seed(page);
+  await go(page, 'perfil');
+  const outcome = await page.evaluate(async () => {
+    const { store } = await import('/src/store.js');
+    const original = store.exportJson();
+    const wrongShape = store.importJson('{"politicians":[],"alerts":42,"prefs":null}');
+    const unsafeUrl = store.importJson('{"politicians":[{"id":"a","name":"Teste","pageUrl":"javascript:alert(1)"}]}');
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => { throw new Error('Sem espaço'); };
+    let failedWrite = false;
+    try { store.set({ theme: 'dark' }); } catch { failedWrite = true; }
+    Storage.prototype.setItem = setItem;
+    return { wrongShape, unsafeUrl, failedWrite, unchanged: store.exportJson() === original };
+  });
+  expect(outcome).toEqual({ wrongShape: false, unsafeUrl: false, failedWrite: true, unchanged: true });
+});

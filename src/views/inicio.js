@@ -1,6 +1,6 @@
 import { store } from '../store.js';
 import { loadComparison, loadSenateComparison } from '../votes.js';
-import { esc, fmtDate, VOTE_CLASS, brl, $, skeleton } from '../ui.js';
+import { esc, fmtDate, VOTE_CLASS, $, skeleton } from '../ui.js';
 import { politicianCard, bindPoliticianActions } from './politicos.js';
 import { openAnalysisModal } from '../analysis.js';
 import { upcomingAgenda } from '../api.js';
@@ -45,7 +45,7 @@ export async function render(root) {
       <div>
         <span class="directory-eyebrow"><span class="mi" aria-hidden="true">verified</span>Seu resumo cívico</span>
         <h1>Acompanhamento</h1>
-        <p>Votações e gastos das <b>${politicians.length} pessoas que você acompanha</b>.</p>
+        <p>Votações recentes das <b>${politicians.length} pessoas que você acompanha</b>. Consulte os gastos nos perfis individuais.</p>
       </div>
       <div class="row page-actions">
         <button class="btn outlined" id="btn-refresh"><span class="mi" aria-hidden="true">sync</span>Atualizar Feed</button>
@@ -97,8 +97,6 @@ export async function render(root) {
         <div class="row u-gap-6" id="feed-filters" aria-label="Filtrar linha do tempo">
           <button class="chip green u-cursor-pointer" data-filter="all" aria-pressed="true">Tudo</button>
           <button class="chip u-cursor-pointer" data-filter="votacao" aria-pressed="false">Votações Nominais</button>
-          <button class="chip u-cursor-pointer" data-filter="ceap" aria-pressed="false">Auditorias CEAP</button>
-          <button class="chip u-cursor-pointer" data-filter="comissao" aria-pressed="false">Comissões</button>
         </div>
 
         <div id="feed" class="stack">
@@ -228,22 +226,6 @@ export async function render(root) {
       }
     }
 
-    // 3. Adiciona auditoria simulada de Gastos CEAP recente dos representantes
-    if (deputies.length || senators.length) {
-      const primaryPol = deputies[0] || senators[0];
-      items.push({
-        type: 'ceap',
-        feedKind: 'ceap',
-        badge: 'Auditoria CEAP • Cota Parlamentar',
-        date: new Date(Date.now() - 3600000).toISOString(),
-        title: `Reembolso de Verba Parlamentar Registrado por ${primaryPol.name} (${primaryPol.party}/${primaryPol.uf})`,
-        value: 2450.00,
-        supplier: 'Auto Posto & Transportes Vale do Paraíba Ltda.',
-        purpose: 'Combustíveis e lubrificantes para deslocamento parlamentar em visitas a municípios de base.',
-        verified: true,
-      });
-    }
-
     if (!items.length) {
       feed.innerHTML = '<div class="card empty"><p class="muted">Sem votações nominais recentes registradas.</p></div>';
       return;
@@ -261,36 +243,6 @@ export async function render(root) {
 
       feed.innerHTML = filtered
         .map((it, idx) => {
-          if (it.feedKind === 'ceap') {
-            return `
-              <article class="card stack u-gap-12 u-bl-4-solid-tertiary">
-                <div class="row between">
-                  <div class="row u-gap-6">
-                    <span class="chip gold">${esc(it.badge)}</span>
-                    <span class="chip green"><span class="mi u-fs-13" aria-hidden="true">verified</span>Validada</span>
-                  </div>
-                  <span class="xs muted">${fmtDate(it.date)}</span>
-                </div>
-
-                <div class="row between u-ai-flex-start">
-                  <div>
-                    <h3 class="u-fs-14_5 u-fw-700">${esc(it.title)}</h3>
-                    <p class="sm muted u-mt-2">${esc(it.purpose)}</p>
-                  </div>
-                  <div class="u-ta-right">
-                    <span class="xs muted u-d-block">Reembolso Solicitado</span>
-                    <b class="u-fs-18 u-c-primary u-fw-800">${brl(it.value)}</b>
-                  </div>
-                </div>
-
-                <div class="row between sm u-bg-s1 u-p-8-12 u-br-r-sm">
-                  <span class="muted">Fornecedor: <b>${esc(it.supplier)}</b></span>
-                  <span class="chip green xs"><span class="mi u-fs-13" aria-hidden="true">check</span>Preço Médio Regional</span>
-                </div>
-              </article>
-            `;
-          }
-
           return `
             <article class="card stack u-gap-12">
               <div class="row between">
