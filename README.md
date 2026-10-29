@@ -24,15 +24,15 @@ npm run dev   # http://localhost:5173
 
 ## Deploy no Cloudflare Workers (plano gratuito)
 
-O deploy usa `wrangler.jsonc` e publica somente os arquivos do app. O arquivo `.assetsignore` é obrigatório: o checkout contém `node_modules` e ferramentas de desenvolvimento que não podem ser enviados como assets do Worker.
+O deploy usa `wrangler.jsonc`. O Wrangler executa `npm run build:public` e publica somente `dist/`, montado por lista de inclusão. Dependências, testes, documentos e ferramentas de desenvolvimento ficam fora do pacote.
 
-No Cloudflare, deixe o diretório de saída como `.` e use:
+No Cloudflare, use `npx wrangler deploy` como comando de deploy; o diretório de assets é `./dist` no `wrangler.jsonc`. Para conferir o pacote antes de publicar, execute `npm run build:public`.
 
 ```bash
 npm run deploy
 ```
 
-O commit publicado precisa conter `wrangler.jsonc` e `.assetsignore`. Se o Wrangler mostrar `Detected Project Settings` ou perguntar `Do you want to modify these settings?`, ele não encontrou o `wrangler.jsonc` no commit que o Cloudflare clonou; verifique o branch e o commit configurados no projeto.
+O commit publicado precisa conter `wrangler.jsonc`, `_headers` e `scripts/build-public.mjs`. Se o Wrangler mostrar `Detected Project Settings` ou perguntar `Do you want to modify these settings?`, ele não encontrou o `wrangler.jsonc` no commit que o Cloudflare clonou; verifique o branch e o commit configurados no projeto.
 
 ## Testes
 
