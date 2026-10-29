@@ -1,4 +1,5 @@
 import { store } from '../store.js';
+import { safeUrl } from '../urls.js';
 import { collectAlerts, prefOn, EXPENSE_THRESHOLD } from '../alerts.js';
 import { esc, fmtDate, toast, $ } from '../ui.js';
 
@@ -103,8 +104,8 @@ export function render(root) {
                 </div>
                 <p class="u-fs-14 u-fw-600 u-lh-1_45">${esc(a.text)}</p>
                 ${
-                  a.url && k.link
-                    ? `<a class="btn outlined sm u-align-self-flex-start" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${k.link}<span class="sr-only"> (abre em nova aba)</span><span class="mi u-fs-14" aria-hidden="true">open_in_new</span></a>`
+                  safeUrl(a.url) && k.link
+                    ? `<a class="btn outlined sm u-align-self-flex-start" href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener noreferrer">${k.link}<span class="sr-only"> (abre em nova aba)</span><span class="mi u-fs-14" aria-hidden="true">open_in_new</span></a>`
                     : ''
                 }
               </article>`;

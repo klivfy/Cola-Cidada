@@ -1,5 +1,5 @@
 import { store } from './store.js';
-import { $, $$, initImageFallback } from './ui.js';
+import { $, $$, initImageFallback, toast } from './ui.js';
 import { prefersReducedMotion } from './motion.js';
 import { initDynamicStyles } from './dynamic.js';
 import * as painel from './views/painel.js';
@@ -10,6 +10,10 @@ import * as alertas from './views/alertas.js';
 import * as perfil from './views/perfil.js';
 import * as poderes from './views/poderes.js';
 import { refreshFollowed } from './refresh.js';
+
+window.addEventListener('cola:storage-error', () => {
+  toast('Não foi possível guardar a alteração neste aparelho. Confira o espaço disponível e exporte um backup.', 'error');
+});
 
 // nav: false — a tela existe (links internos levam a ela), mas não ocupa lugar na navegação.
 const routes = {

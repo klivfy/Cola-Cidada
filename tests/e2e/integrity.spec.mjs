@@ -30,6 +30,9 @@ test('backup inválido e falha de gravação preservam os dados atuais', async (
   const outcome = await page.evaluate(async () => {
     const { store } = await import('/src/store.js');
     const original = store.exportJson();
+    const exportedVersion = JSON.parse(original).schemaVersion;
+    const preview = store.previewImport(original);
+    const futureVersion = store.importJson('{"schemaVersion":999,"politicians":[]}');
     const wrongShape = store.importJson('{"politicians":[],"alerts":42,"prefs":null}');
     const unsafeUrl = store.importJson('{"politicians":[{"id":"a","name":"Teste","pageUrl":"javascript:alert(1)"}]}');
     const setItem = Storage.prototype.setItem;
@@ -37,7 +40,7 @@ test('backup inválido e falha de gravação preservam os dados atuais', async (
     let failedWrite = false;
     try { store.set({ theme: 'dark' }); } catch { failedWrite = true; }
     Storage.prototype.setItem = setItem;
-    return { wrongShape, unsafeUrl, failedWrite, unchanged: store.exportJson() === original };
+    return { exportedVersion, previewVersion: preview.version, futureVersion, wrongShape, unsafeUrl, failedWrite, unchanged: store.exportJson() === original };
   });
-  expect(outcome).toEqual({ wrongShape: false, unsafeUrl: false, failedWrite: true, unchanged: true });
+  expect(outcome).toEqual({ exportedVersion: 1, previewVersion: 1, futureVersion: false, wrongShape: false, unsafeUrl: false, failedWrite: true, unchanged: true });
 });

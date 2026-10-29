@@ -5,6 +5,7 @@ import { politicianCard, bindPoliticianActions } from './politicos.js';
 import { openAnalysisModal } from '../analysis.js';
 import { upcomingAgenda } from '../api.js';
 import { toast } from '../ui.js';
+import { safeUrl } from '../urls.js';
 
 export async function render(root) {
   const { politicians } = store.get();
@@ -344,14 +345,14 @@ async function loadAgenda(root) {
     list.innerHTML = events
       .map(
         (e) => `
-      <a class="card soft stack u-gap-4 u-p-10 u-text-decoration-none u-c-inherit" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">
+      ${safeUrl(e.url) ? `<a class="card soft stack u-gap-4 u-p-10 u-text-decoration-none u-c-inherit" href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener noreferrer">` : '<div class="card soft stack u-gap-4 u-p-10">'}
         <div class="row between sm">
           <span class="muted">${esc(when(e.start))}</span>
           <span class="chip sm green">${esc(e.organ || 'Câmara')}</span>
         </div>
         <b class="u-fs-13">${esc(e.description || e.type)}</b>
         <p class="xs muted">${esc(e.type)}${e.place ? ' · ' + esc(e.place) : ''}</p>
-      </a>`
+      ${safeUrl(e.url) ? '</a>' : '</div>'}`
       )
       .join('');
     const next = events.find((e) => /Deliberativa/.test(e.type || '') && !/N[ãa]o/.test(e.type || '')) || events[0];
@@ -362,7 +363,7 @@ async function loadAgenda(root) {
         <p>${esc(next.description || next.type)}</p>
         <div class="row between u-mt-14 u-fs-12">
           <b>${esc(when(next.start))}</b>
-          <a class="btn sm u-bg-4e3900 u-c-fff" href="${esc(next.url)}" target="_blank" rel="noopener noreferrer">Ver evento</a>
+          ${safeUrl(next.url) ? `<a class="btn sm u-bg-4e3900 u-c-fff" href="${esc(safeUrl(next.url))}" target="_blank" rel="noopener noreferrer">Ver evento</a>` : ''}
         </div>`;
       for (const target of [hero, mobileHero]) {
         if (!target) continue;

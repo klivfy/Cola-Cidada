@@ -21,6 +21,7 @@ import { openDossierModal } from '../dossier.js';
 import { openShareModal } from '../share.js';
 import { openAnalysisModal } from '../analysis.js';
 import { currentLegislatureLabel } from '../legislature.js';
+import { safeUrl } from '../urls.js';
 
 export function politicianCard(p, { heading = 3 } = {}) {
   const isState =
@@ -121,7 +122,7 @@ export function politicianCard(p, { heading = 3 } = {}) {
 function creditHtml(p) {
   const c = photoCredit(p);
   if (!c) return '';
-  return `<span class="xs muted u-d-block">${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.texto)}<span class="sr-only"> (abre em nova aba)</span></a>` : esc(c.texto)}</span>`;
+  return `<span class="xs muted u-d-block">${safeUrl(c.url) ? `<a href="${esc(safeUrl(c.url))}" target="_blank" rel="noopener noreferrer">${esc(c.texto)}<span class="sr-only"> (abre em nova aba)</span></a>` : esc(c.texto)}</span>`;
 }
 
 const longDate = (iso) => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }) : '');
@@ -494,10 +495,10 @@ export async function openPoliticianDetails(p) {
               : ''
           }
           ${
-            p.pageUrl
+            safeUrl(p.pageUrl)
               ? `
             <div class="row u-mt-4">
-              <a href="${esc(p.pageUrl)}" target="_blank" rel="noopener noreferrer" class="btn primary sm u-width-100pct u-jc-center">
+              <a href="${esc(safeUrl(p.pageUrl))}" target="_blank" rel="noopener noreferrer" class="btn primary sm u-width-100pct u-jc-center">
                 <span>Página Oficial na Casa Legislativa</span><span class="mi u-fs-15" aria-hidden="true">open_in_new</span>
               </a>
             </div>`
@@ -539,11 +540,11 @@ export async function openPoliticianDetails(p) {
         <p class="sm muted">Os dados eleitorais deste mandato não estão carregados localmente. Consulte a ficha oficial no TSE.</p>`
         }
         <p class="xs muted">Prestação de contas de campanha (arrecadação e doadores): consulte a ficha oficial no TSE.</p>
-        <div class="row u-mt-4">
-          <a href="${esc(tse.tseUrl)}" target="_blank" rel="noopener noreferrer" class="btn primary sm u-width-100pct u-jc-center">
+        ${safeUrl(tse.tseUrl) ? `<div class="row u-mt-4">
+          <a href="${esc(safeUrl(tse.tseUrl))}" target="_blank" rel="noopener noreferrer" class="btn primary sm u-width-100pct u-jc-center">
             <span>Consultar Ficha Eleitoral no TSE (DivulgaCandContas)</span><span class="mi u-fs-15" aria-hidden="true">open_in_new</span>
           </a>
-        </div>
+        </div>` : ''}
       </div>
     </div>
   `);
@@ -654,10 +655,10 @@ export async function openPoliticianDetails(p) {
                     <span>${fmtDate(ex.date)}</span>
                   </div>
                   ${
-                    ex.receiptUrl
+                    safeUrl(ex.receiptUrl)
                       ? `<div class="row u-mt-4">
                       <a href="${esc(
-                        ex.receiptUrl
+                        safeUrl(ex.receiptUrl)
                       )}" target="_blank" rel="noopener noreferrer" class="xs u-fw-600 u-d-inline-flex u-ai-center u-gap-4">
                         <span class="mi u-fs-14" aria-hidden="true">receipt_long</span><span>Ver Nota Fiscal / Comprovante</span>
                       </a>
@@ -692,9 +693,9 @@ export async function openPoliticianDetails(p) {
                 </div>
                 <p class="u-fs-13 u-lh-1_4">${esc(item.summary)}</p>
                 <div class="row between u-mt-4">
-                  <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="sm u-fw-600 u-d-inline-flex u-ai-center u-gap-4">
+                  ${safeUrl(item.url) ? `<a href="${esc(safeUrl(item.url))}" target="_blank" rel="noopener noreferrer" class="sm u-fw-600 u-d-inline-flex u-ai-center u-gap-4">
                     <span>Ficha oficial de tramitação</span><span class="mi u-fs-14" aria-hidden="true">open_in_new</span>
-                  </a>
+                  </a>` : ''}
                   <button class="btn ghost sm btn-analyze-proj u-p-4-8 u-fs-11_5" data-index="${idx}">
                     <span class="mi u-fs-14 u-c-primary" aria-hidden="true">psychology</span>
                     <span>Scanner de Jabutis</span>

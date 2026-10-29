@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { project, rubberband, velocityFrom } from '../../src/motion.js';
 import { defaultMandate, mandateProgress, esc, initials, photoUrl } from '../../src/ui.js';
+import { safeUrl } from '../../src/urls.js';
 import { parseBloc, orientationFor } from '../../src/plenary.js';
 
 test('projeção de inércia: parado não anda, lançamento rápido vai longe', () => {
@@ -98,4 +99,11 @@ test('fotos oficiais: sempre https e direto na URL final do Senado', () => {
   assert.equal(photoUrl('http://www.camara.leg.br/internet/deputado/bandep/204379.jpg'), 'https://www.camara.leg.br/internet/deputado/bandep/204379.jpg');
   assert.equal(photoUrl('http://www.senado.leg.br/senadores/img/fotos-oficiais/senador5672.jpg'), 'https://legis.senado.leg.br/senadores/fotos-oficiais/5672');
   assert.equal(photoUrl('https://exemplo.org/a.png'), 'https://exemplo.org/a.png');
+  assert.equal(photoUrl('javascript:alert(1)'), '');
+  assert.equal(safeUrl('https://usuario:senha@exemplo.org/'), '');
+  assert.equal(safeUrl('//exemplo.org/'), '');
+  assert.equal(safeUrl('http://exemplo.org/'), '');
+  assert.equal(safeUrl('https://exemplo.org/ caminho'), '');
+  assert.equal(safeUrl('/src/app.js'), '/src/app.js');
+  assert.equal(safeUrl('/\\exemplo.org/'), '');
 });

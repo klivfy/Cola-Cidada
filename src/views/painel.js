@@ -7,6 +7,7 @@ import { budgetSummary, personnelSpending, federalBodies, stateBodies, recentCon
 import { esc, avatar, partyChip, ROLES, skeleton, tablist, brl, $ } from '../ui.js';
 import { openPoliticianDetails } from './politicos.js';
 import { creditsHtml } from '../creditos.js';
+import { safeUrl } from '../urls.js';
 
 const PAGE = 24;
 
@@ -89,8 +90,8 @@ function bodyCard(b, i) {
           : ''
       }
       ${
-        b.portal
-          ? `<a class="btn ghost sm" href="${esc(b.portal)}" target="_blank" rel="noopener noreferrer">${esc(b.portalLabel)}<span class="sr-only"> (abre em nova aba)</span><span class="mi u-fs-15" aria-hidden="true">open_in_new</span></a>`
+        safeUrl(b.portal)
+          ? `<a class="btn ghost sm" href="${esc(safeUrl(b.portal))}" target="_blank" rel="noopener noreferrer">${esc(b.portalLabel)}<span class="sr-only"> (abre em nova aba)</span><span class="mi u-fs-15" aria-hidden="true">open_in_new</span></a>`
           : ''
       }
     </div>
@@ -106,7 +107,7 @@ function contractItem(c) {
     <div class="row between"><b>${c.value == null ? 'valor não informado' : brl(c.value)}</b><span class="xs muted">${fmtDay(c.date)}</span></div>
     <span>${esc(c.object.slice(0, 220))}${c.object.length > 220 ? '…' : ''}</span>
     <span class="xs muted">${esc(c.supplier)}${c.kind ? ` · ${esc(c.kind)}` : ''}${c.emenda ? ' · <b>emenda parlamentar</b>' : ''}</span>
-    <a class="xs" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Ver no PNCP<span class="sr-only"> (abre em nova aba)</span></a>
+    ${safeUrl(c.url) ? `<a class="xs" href="${esc(safeUrl(c.url))}" target="_blank" rel="noopener noreferrer">Ver no PNCP<span class="sr-only"> (abre em nova aba)</span></a>` : ''}
   </li>`;
 }
 

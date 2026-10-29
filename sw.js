@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cola-cidada-v32';
+const CACHE_NAME = 'cola-cidada-v33';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -11,6 +11,7 @@ const APP_SHELL = [
   '/src/dynamic.js',
   '/src/main.js',
   '/src/store.js',
+  '/src/urls.js',
   '/src/ui.js',
   '/src/motion.js',
   '/src/plenary.js',

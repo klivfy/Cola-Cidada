@@ -1,5 +1,7 @@
 // Estado da aplicação — persistido apenas no navegador (localStorage).
+import { safeUrl } from './urls.js';
 const KEY = 'monitor-cidadao:v1';
+const BACKUP_VERSION = 1;
 
 const defaults = () => ({
   theme: 'system', // 'system' | 'light' | 'dark'
@@ -13,9 +15,6 @@ const defaults = () => ({
 
 const listeners = new Set();
 const isRecord = (value) => value && typeof value === 'object' && !Array.isArray(value);
-const safeUrl = (value) => typeof value === 'string' && (
-  /^https:\/\/[^\s]+$/i.test(value) || /^\/(?!\/)[^\s]*$/.test(value)
-);
 
 function normalize(value, legacy = false) {
   if (!isRecord(value)) throw new Error('Formato de backup inválido');
@@ -42,6 +41,7 @@ function normalize(value, legacy = false) {
 function parseBackup(jsonString) {
   if (typeof jsonString !== 'string' || jsonString.length > 5_000_000) throw new Error('Backup muito grande');
   const parsed = JSON.parse(jsonString);
+  if (parsed?.schemaVersion != null && parsed.schemaVersion !== BACKUP_VERSION) throw new Error('Versão de backup incompatível');
   if (!isRecord(parsed) || !Array.isArray(parsed.politicians) ||
       (Object.hasOwn(parsed, 'alerts') && parsed.alerts == null) ||
       (Object.hasOwn(parsed, 'prefs') && parsed.prefs == null)) throw new Error('Formato de backup inválido');
@@ -59,7 +59,12 @@ function load() {
 let state = load();
 
 function persist(next) {
-  localStorage.setItem(KEY, JSON.stringify(next));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(next));
+  } catch (error) {
+    window.dispatchEvent(new Event('cola:storage-error'));
+    throw error;
+  }
   state = next;
   listeners.forEach((fn) => fn(state));
 }
@@ -95,11 +100,17 @@ export const store = {
     if (fresh.length) this.set({ alerts: [...fresh, ...state.alerts].slice(0, 200) });
     return fresh.length;
   },
-  exportJson: () => JSON.stringify(state, null, 2),
+  exportJson: () => JSON.stringify({ schemaVersion: BACKUP_VERSION, ...state }, null, 2),
   previewImport(jsonString) {
     try {
       const next = parseBackup(jsonString);
-      return { politicians: next.politicians.length, alerts: next.alerts.length };
+      return {
+        version: next.schemaVersion || 'anterior',
+        politicians: next.politicians.length,
+        alerts: next.alerts.length,
+        domicile: `${next.domicile.city} - ${next.domicile.state}`,
+        theme: next.theme,
+      };
     } catch {
       return null;
     }

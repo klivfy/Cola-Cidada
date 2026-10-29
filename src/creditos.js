@@ -1,8 +1,9 @@
 // Créditos das imagens do app: de onde vem cada foto e bandeira, e a licença de quem exige crédito.
 import { PARTIDOS, BANDEIRAS } from './data/simbolos.js';
 import { esc } from './ui.js';
+import { safeUrl } from './urls.js';
 
-const link = (url, text) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(text)}<span class="sr-only"> (abre em nova aba)</span></a>`;
+const link = (url, text) => safeUrl(url) ? `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener noreferrer">${esc(text)}<span class="sr-only"> (abre em nova aba)</span></a>` : esc(text);
 
 export function creditsHtml(stf) {
   const ministros = (stf?.ministros || []).filter((m) => m.fotoCredito);

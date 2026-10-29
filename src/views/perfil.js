@@ -89,7 +89,7 @@ export function render(root) {
                 <div class="card soft row between sm u-p-10-14 u-br-r-md u-bg-s2">
                   <div class="row nowrap u-gap-12">
                     <div class="u-width-36 u-height-36 u-br-50pct u-bg-card u-d-grid u-place-items-center u-fw-700">
-                      ${p.name.charAt(0)}
+                      ${esc(p.name.charAt(0))}
                     </div>
                     <div>
                       <b class="u-fs-13_5">${esc(p.name)}</b><br>
@@ -199,8 +199,12 @@ export function render(root) {
   $('#btn-save-domicile', root).onclick = () => {
     const st = $('#dom-state', root)?.value || 'SP';
     const ct = $('#dom-city', root)?.value || 'São Paulo';
-    store.setDomicile(st, ct);
-    toast('Domicílio eleitoral atualizado!');
+    try {
+      store.setDomicile(st, ct);
+      toast('Domicílio eleitoral atualizado!');
+    } catch {
+      // O aviso global de armazenamento já explica a falha; o valor anterior foi preservado.
+    }
   };
 
   $('#btn-edit-domicile', root).onclick = () => {
@@ -239,7 +243,7 @@ export function render(root) {
           toast('Arquivo de backup inválido.', 'error');
           return;
         }
-        const valid = window.confirm(`Restaurar este backup com ${preview.politicians} pessoa(s) acompanhada(s) e ${preview.alerts} alerta(s)? Os dados atuais deste aparelho serão substituídos.`);
+        const valid = window.confirm(`Backup versão ${preview.version}\n${preview.politicians} pessoa(s) acompanhada(s)\n${preview.alerts} alerta(s)\nDomicílio: ${preview.domicile}\nTema: ${preview.theme}\n\nRestaurar? Isto substituirá a lista, os alertas, o domicílio e todas as preferências atuais deste aparelho.`);
         if (valid && store.importJson(text)) {
           toast('Dados restaurados com sucesso!');
           render(root);

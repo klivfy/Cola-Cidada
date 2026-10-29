@@ -5,6 +5,7 @@ import { avatar, esc, fmtDate, VOTE_CLASS, brl, toast, tablist, $, skeleton } fr
 import { openGlossaryModal } from '../glossary.js';
 import { openShareModal } from '../share.js';
 import { openAnalysisModal } from '../analysis.js';
+import { safeUrl } from '../urls.js';
 
 const VOTE_TONE = (t) => (t === 'Sim' ? 'sim' : t === 'Não' ? 'nao' : 'abstencao');
 
@@ -203,9 +204,9 @@ function mpvCard(m) {
     </div>
 
     <div class="row">
-      <a href="${esc(m.url)}" target="_blank" rel="noopener noreferrer" class="btn primary sm u-fw-600">
+      ${safeUrl(m.url) ? `<a href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener noreferrer" class="btn primary sm u-fw-600">
         <span>Acompanhar Tramitação na Câmara</span><span class="mi u-fs-14" aria-hidden="true">open_in_new</span>
-      </a>
+      </a>` : ''}
     </div>
   </article>`;
 }

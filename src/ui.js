@@ -1,6 +1,7 @@
 // Utilitários de UI e domínio.
 import { spring, project, rubberband, velocityFrom, prefersReducedMotion } from './motion.js';
 import { partyName, partyFlag, stateFlag, birthplace, isMagistrate } from './simbolos.js';
+import { safeUrl } from './urls.js';
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -24,7 +25,7 @@ export function photoUrl(u) {
   if (!u) return '';
   const url = String(u).replace(/^http:\/\//i, 'https://');
   const m = url.match(/^https:\/\/www\.senado\.leg\.br\/senadores\/img\/fotos-oficiais\/senador(\d+)\.jpg$/i);
-  return m ? `https://legis.senado.leg.br/senadores/fotos-oficiais/${m[1]}` : url;
+  return safeUrl(m ? `https://legis.senado.leg.br/senadores/fotos-oficiais/${m[1]}` : url);
 }
 
 // Foto que não carrega (rede, bloqueio, arquivo removido) vira as iniciais, em vez do texto alternativo quebrado.
@@ -50,9 +51,9 @@ export function initImageFallback(doc = document) {
 const tsePhoto = (p) => (p.tse?.sq && p.tse?.year ? `/fotos/tse/${p.tse.year}/${p.tse.sq}.jpg` : '');
 
 export function avatar(p, cls = '') {
-  const photo = p.photo || tsePhoto(p);
+  const photo = photoUrl(p.photo || tsePhoto(p));
   return photo
-    ? `<img class="avatar ${cls}" src="${esc(photoUrl(photo))}" alt="" data-name="${esc(p.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+    ? `<img class="avatar ${cls}" src="${esc(photo)}" alt="" data-name="${esc(p.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
     : `<div class="avatar ${cls}" aria-hidden="true">${esc(initials(p.name))}</div>`;
 }
 
